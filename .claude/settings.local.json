@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \":*)",
+      "Bash(npx prisma:*)",
+      "Bash(node --loader tsx/esm -e \":*)",
+      "Read(//c/Users/owilson/personalprod/**)"
+    ]
+  }
+}

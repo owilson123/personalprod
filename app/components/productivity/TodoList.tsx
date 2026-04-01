@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { format } from 'date-fns';
 import { uid } from '@/lib/helpers';
 import { SectionHeader } from '@/app/components/ui/SectionHeader';
 
 interface Todo { id: string; text: string; done: boolean; }
 
-export function TodoList() {
+interface Props { date: string; } // YYYY-MM-DD
+
+export function TodoList({ date }: Props) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTxt, setNewTxt] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
@@ -14,51 +17,53 @@ export function TodoList() {
   const [ready, setReady] = useState(false);
   const [useLocal, setUseLocal] = useState(false);
 
+  const localKey = `dash-todos-${date}`;
+  const today = format(new Date(), 'yyyy-MM-dd');
+
   const fetchTodos = useCallback(async () => {
     try {
-      const res = await fetch('/api/todos');
+      const res = await fetch(`/api/todos?date=${date}`);
       if (res.status === 503) { setUseLocal(true); return null; }
       if (res.ok) return await res.json();
     } catch { setUseLocal(true); }
     return null;
-  }, []);
+  }, [date]);
 
   useEffect(() => {
-    setReady(true);
+    setReady(false);
+    setTodos([]);
     fetchTodos().then(data => {
+      setReady(true);
       if (data && data.length > 0) {
         setTodos(data);
       } else if (data && data.length === 0) {
-        // DB available but empty — check localStorage for migration
         try {
-          const s = localStorage.getItem('dash-todos');
+          const s = localStorage.getItem(localKey);
           if (s) {
-            const localTodos = JSON.parse(s) as Todo[];
-            if (localTodos.length > 0) {
-              setTodos(localTodos);
+            const local = JSON.parse(s) as Todo[];
+            if (local.length > 0) {
+              setTodos(local);
               fetch('/api/todos/migrate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(localTodos),
-              }).then(() => localStorage.removeItem('dash-todos'));
+                body: JSON.stringify({ todos: local, date }),
+              }).then(() => localStorage.removeItem(localKey));
             }
           }
         } catch { /* silent */ }
       } else {
-        // DB unavailable, use localStorage
         try {
-          const s = localStorage.getItem('dash-todos');
+          const s = localStorage.getItem(localKey);
           if (s) setTodos(JSON.parse(s));
         } catch { /* silent */ }
       }
     });
-  }, [fetchTodos]);
+  }, [date, fetchTodos, localKey]);
 
-  // localStorage fallback persistence
   useEffect(() => {
     if (!ready || !useLocal) return;
-    localStorage.setItem('dash-todos', JSON.stringify(todos));
-  }, [todos, ready, useLocal]);
+    localStorage.setItem(localKey, JSON.stringify(todos));
+  }, [todos, ready, useLocal, localKey]);
 
   const add = async () => {
     if (!newTxt.trim()) return;
@@ -71,7 +76,7 @@ export function TodoList() {
         const res = await fetch('/api/todos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: todo.text }),
+          body: JSON.stringify({ text: todo.text, date }),
         });
         if (res.ok) {
           const created = await res.json();
@@ -120,6 +125,8 @@ export function TodoList() {
     setEditId(null);
   };
 
+  const isPast = date < today;
+
   return (
     <div className="flex flex-col h-full">
       <SectionHeader title="To-Do List" />
@@ -127,7 +134,9 @@ export function TodoList() {
         <div className="flex-1 overflow-y-auto space-y-1 scrollbar-thin">
           {todos.length === 0 && (
             <div className="flex items-center justify-center h-full">
-              <p style={{ color: '#52536a', fontSize: 13 }}>No tasks yet — add one below.</p>
+              <p style={{ color: '#52536a', fontSize: 13 }}>
+                {isPast ? 'No tasks for this day.' : 'No tasks yet — add one below.'}
+              </p>
             </div>
           )}
           {todos.map(t => (
@@ -171,18 +180,20 @@ export function TodoList() {
             </div>
           ))}
         </div>
-        <div className="flex gap-2 mt-2 pt-2" style={{ borderTop: '1px solid #2a2b3d' }}>
-          <input value={newTxt} onChange={e => setNewTxt(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && add()}
-            placeholder="Add a new task…"
-            className="flex-1 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-600 focus:outline-none border transition-all"
-            style={{ background: '#242530', borderColor: '#2a2b3d' }} />
-          <button onClick={add} disabled={!newTxt.trim()}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-40 shrink-0 transition-all"
-            style={{ background: 'linear-gradient(135deg, #4f7df9, #3b6ae8)' }}>
-            Add
-          </button>
-        </div>
+        {!isPast && (
+          <div className="flex gap-2 mt-2 pt-2" style={{ borderTop: '1px solid #2a2b3d' }}>
+            <input value={newTxt} onChange={e => setNewTxt(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && add()}
+              placeholder="Add a new task…"
+              className="flex-1 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-600 focus:outline-none border transition-all"
+              style={{ background: '#242530', borderColor: '#2a2b3d' }} />
+            <button onClick={add} disabled={!newTxt.trim()}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-40 shrink-0 transition-all"
+              style={{ background: 'linear-gradient(135deg, #4f7df9, #3b6ae8)' }}>
+              Add
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

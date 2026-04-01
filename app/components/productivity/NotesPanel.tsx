@@ -1,61 +1,73 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { format } from 'date-fns';
 import { SectionHeader } from '@/app/components/ui/SectionHeader';
 
-export function NotesPanel() {
+interface Props { date: string; } // YYYY-MM-DD
+
+export function NotesPanel({ date }: Props) {
   const [notes, setNotes] = useState('');
   const [ready, setReady] = useState(false);
   const [useLocal, setUseLocal] = useState(false);
 
+  const localKey = `dash-notes-${date}`;
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const isPast = date < today;
+
   const fetchNotes = useCallback(async () => {
     try {
-      const res = await fetch('/api/notes');
+      const res = await fetch(`/api/notes?date=${date}`);
       if (res.status === 503) { setUseLocal(true); return null; }
       if (res.ok) return await res.json();
     } catch { setUseLocal(true); }
     return null;
-  }, []);
+  }, [date]);
 
   useEffect(() => {
-    setReady(true);
+    setReady(false);
+    setNotes('');
     fetchNotes().then(data => {
+      setReady(true);
       if (data && data.content) {
         setNotes(data.content);
       } else if (data && !data.content) {
-        // DB available but empty — check localStorage for migration
-        const s = localStorage.getItem('dash-notes');
-        if (s) {
-          setNotes(s);
-          fetch('/api/notes', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: s }),
-          }).then(() => localStorage.removeItem('dash-notes'));
-        }
+        try {
+          const s = localStorage.getItem(localKey);
+          if (s) {
+            setNotes(s);
+            fetch('/api/notes', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ content: s, date }),
+            }).then(() => localStorage.removeItem(localKey));
+          }
+        } catch { /* silent */ }
       } else {
-        const s = localStorage.getItem('dash-notes');
-        if (s) setNotes(s);
+        try {
+          const s = localStorage.getItem(localKey);
+          if (s) setNotes(s);
+        } catch { /* silent */ }
       }
     });
-  }, [fetchNotes]);
+  }, [date, fetchNotes, localKey]);
 
   // Debounced save
   useEffect(() => {
     if (!ready) return;
     const t = setTimeout(() => {
       if (useLocal) {
-        localStorage.setItem('dash-notes', notes);
+        localStorage.setItem(localKey, notes);
       } else {
         fetch('/api/notes', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: notes }),
-        }).catch(() => localStorage.setItem('dash-notes', notes));
+          body: JSON.stringify({ content: notes, date }),
+        }).catch(() => localStorage.setItem(localKey, notes));
       }
     }, 800);
     return () => clearTimeout(t);
-  }, [notes, ready, useLocal]);
+  }, [notes, ready, useLocal, localKey, date]);
 
   return (
     <div className="flex flex-col h-full">
@@ -64,9 +76,16 @@ export function NotesPanel() {
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
-          placeholder="Start writing… your notes auto-save."
+          readOnly={isPast}
+          placeholder={isPast ? 'No notes for this day.' : 'Start writing… your notes auto-save.'}
           className="w-full h-full rounded-xl p-4 text-sm text-white resize-none focus:outline-none transition-all leading-relaxed"
-          style={{ background: '#1a1b23', border: '1px solid #2a2b3d', fontFamily: 'inherit' }}
+          style={{
+            background: '#1a1b23',
+            border: '1px solid #2a2b3d',
+            fontFamily: 'inherit',
+            opacity: isPast && !notes ? 0.5 : 1,
+            cursor: isPast ? 'default' : 'text',
+          }}
         />
       </div>
     </div>

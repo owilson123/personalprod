@@ -2,13 +2,18 @@ export const runtime = 'nodejs';
 
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { format } from 'date-fns';
 
-export async function GET() {
+const noteId = (date?: string | null) => `note-${date ?? format(new Date(), 'yyyy-MM-dd')}`;
+
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const id = noteId(searchParams.get('date'));
     const note = await prisma.note.upsert({
-      where: { id: 'singleton' },
+      where: { id },
       update: {},
-      create: { id: 'singleton', content: '' },
+      create: { id, content: '' },
     });
     return NextResponse.json(note);
   } catch {
@@ -18,11 +23,12 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   try {
-    const { content } = await req.json();
+    const { content, date } = await req.json();
+    const id = noteId(date);
     const note = await prisma.note.upsert({
-      where: { id: 'singleton' },
+      where: { id },
       update: { content },
-      create: { id: 'singleton', content },
+      create: { id, content },
     });
     return NextResponse.json(note);
   } catch {

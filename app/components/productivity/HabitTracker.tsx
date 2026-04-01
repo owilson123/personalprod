@@ -1,35 +1,40 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, parseISO } from 'date-fns';
 import { uid, getWeekDays } from '@/lib/helpers';
 import { SectionHeader } from '@/app/components/ui/SectionHeader';
 
 interface Habit { id: string; name: string; checks: boolean[]; }
 
+interface Props { selectedDate: string; } // YYYY-MM-DD
+
 const SEED_HABITS: Habit[] = [
   { id: 'h1', name: 'Exercise', checks: Array(7).fill(false) },
-  { id: 'h2', name: 'Read', checks: Array(7).fill(false) },
+  { id: 'h2', name: 'Read',     checks: Array(7).fill(false) },
   { id: 'h3', name: 'Meditate', checks: Array(7).fill(false) },
 ];
 
-export function HabitTracker() {
+export function HabitTracker({ selectedDate }: Props) {
   const [habits, setHabits] = useState<Habit[]>(SEED_HABITS);
   const [newName, setNewName] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
-  const [today, setToday] = useState<Date | null>(null);
   const [useLocal, setUseLocal] = useState(false);
 
-  const weekDays = today ? getWeekDays(today) : [];
-  const dayLabels = weekDays.map(d => ({
-    short: format(d, 'EEE'),
-    date: format(d, 'd'),
-    isToday: today ? isSameDay(d, today) : false,
-  }));
-  const todayIdx = today ? (today.getDay() + 6) % 7 : -1;
+  const selectedDateObj = parseISO(selectedDate);
+  const actualToday = new Date();
+  const weekDays = getWeekDays(selectedDateObj);
+
+  const dayLabels = weekDays.map(d => {
+    const isActualToday = isSameDay(d, actualToday);
+    const isSelected = format(d, 'yyyy-MM-dd') === selectedDate;
+    return { short: format(d, 'EEE'), date: format(d, 'd'), isActualToday, isSelected };
+  });
+
+  // Index of selected date in the week (for highlight)
+  const selectedIdx = weekDays.findIndex(d => format(d, 'yyyy-MM-dd') === selectedDate);
 
   const fetchHabits = useCallback(async () => {
-    if (!today) return null;
     const from = format(weekDays[0], 'yyyy-MM-dd');
     const to = format(weekDays[6], 'yyyy-MM-dd');
     try {
@@ -39,23 +44,17 @@ export function HabitTracker() {
     } catch { setUseLocal(true); }
     return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [today]);
-
-  useEffect(() => { setToday(new Date()); }, []);
+  }, [selectedDate]);
 
   useEffect(() => {
-    if (!today) return;
     fetchHabits().then(data => {
       if (data && data.length > 0) {
-        // Map DB habits with checks per weekday
         setHabits(data.map((h: { id: string; name: string; checks: boolean[] }) => ({
-          id: h.id,
-          name: h.name,
-          checks: h.checks || Array(7).fill(false),
+          id: h.id, name: h.name, checks: h.checks || Array(7).fill(false),
         })));
       }
     });
-  }, [today, fetchHabits]);
+  }, [fetchHabits]);
 
   const toggle = async (id: string, i: number) => {
     setHabits(p => p.map(h => h.id === id
@@ -117,6 +116,8 @@ export function HabitTracker() {
     <div className="flex flex-col h-full">
       <SectionHeader title="Habit Tracker" />
       <div className="flex-1 overflow-hidden flex flex-col px-3 pb-2">
+
+        {/* Day header */}
         <div className="flex items-end mb-1.5 gap-2">
           <div className="flex-1 min-w-0" />
           <div className="flex gap-1 shrink-0">
@@ -124,9 +125,12 @@ export function HabitTracker() {
               <div key={i} className="flex flex-col items-center" style={{ width: 22 }}>
                 <span style={{
                   fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-                  color: d.isToday ? '#4f7df9' : '#52536a',
+                  color: d.isSelected ? '#4f7df9' : d.isActualToday ? '#6b8afc' : '#52536a',
                 }}>{d.short}</span>
-                <span style={{ fontSize: 9, color: d.isToday ? '#4f7df9' : '#3f4050' }}>{d.date}</span>
+                <span style={{
+                  fontSize: 9,
+                  color: d.isSelected ? '#4f7df9' : d.isActualToday ? '#6b8afc' : '#3f4050',
+                }}>{d.date}</span>
               </div>
             ))}
           </div>
@@ -151,7 +155,7 @@ export function HabitTracker() {
 
               <div className="flex gap-1 shrink-0">
                 {h.checks.map((checked, i) => {
-                  const isToday = i === todayIdx;
+                  const isSelected = i === selectedIdx;
                   return (
                     <button
                       key={i}
@@ -160,7 +164,7 @@ export function HabitTracker() {
                       className="transition-all"
                       style={{
                         width: 22, height: 22, flexShrink: 0, borderRadius: 5,
-                        border: checked ? 'none' : isToday ? '2px solid rgba(79,125,249,0.6)' : '1px solid #2a2b3d',
+                        border: checked ? 'none' : isSelected ? '2px solid rgba(79,125,249,0.6)' : '1px solid #2a2b3d',
                         background: checked ? '#00d084' : 'transparent',
                         cursor: 'pointer',
                         boxShadow: checked ? '0 0 10px rgba(0,208,132,0.3)' : 'none',

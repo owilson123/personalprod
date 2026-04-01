@@ -11,6 +11,7 @@ model Todo {
   text      String
   done      Boolean  @default(false)
   position  Int      @default(0)
+  date      String   @default("")   // YYYY-MM-DD
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

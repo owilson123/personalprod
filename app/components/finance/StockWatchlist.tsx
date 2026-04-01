@@ -140,30 +140,30 @@ export function StockWatchlist() {
           const color = isUp ? '#00d084' : '#ff4757';
           return (
             <div key={stock.id}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 group transition-all"
+              className="flex items-center gap-2 rounded-lg px-2.5 py-1 group transition-all"
               style={{ background: '#1a1b23' }}
               onMouseOver={e => (e.currentTarget.style.background = '#1e1f2a')}
               onMouseOut={e => (e.currentTarget.style.background = '#1a1b23')}>
-              <div className="flex flex-col min-w-0" style={{ width: 56 }}>
-                <span className="font-bold text-white truncate" style={{ fontSize: 12 }}>{stock.symbol}</span>
-                <span className="truncate" style={{ fontSize: 9, color: '#52536a' }}>{stock.name}</span>
+              <div className="flex flex-col min-w-0" style={{ width: 48 }}>
+                <span className="font-bold text-white truncate" style={{ fontSize: 11 }}>{stock.symbol}</span>
+                <span className="truncate" style={{ fontSize: 8, color: '#52536a' }}>{stock.name}</span>
               </div>
 
               <div className="flex-shrink-0">
                 <SparklineChart
                   data={stock.sparkline || []}
                   color={color}
-                  width={64}
-                  height={28}
+                  width={52}
+                  height={22}
                 />
               </div>
 
               <div className="flex flex-col items-end ml-auto min-w-0">
-                <span className="font-semibold tabular-nums text-white" style={{ fontSize: 12 }}>
+                <span className="font-semibold tabular-nums text-white" style={{ fontSize: 11 }}>
                   ${stock.price?.toFixed(2) ?? '—'}
                 </span>
                 <span className="tabular-nums font-semibold" style={{
-                  fontSize: 10, color,
+                  fontSize: 9, color,
                 }}>
                   {isUp ? '+' : ''}{stock.changePercent?.toFixed(2) ?? '0.00'}%
                 </span>
