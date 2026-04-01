@@ -64,7 +64,7 @@ export function TimeBlockingPanel() {
     const scrollY = scrollRef.current?.scrollTop ?? 0;
     const y = e.clientY - rect.top + scrollY;
     const rawMin = y / PX_PER_MIN + START_HOUR * 60;
-    const snap = snapToFive(rawMin);
+    const snap = Math.floor(rawMin / 30) * 30;
     const start = clamp(snap, START_HOUR * 60, END_HOUR * 60 + 30);
     const end = clamp(start + 30, 0, 24 * 60);
     setModal({ start, end, task: '' });
@@ -169,7 +169,7 @@ export function TimeBlockingPanel() {
 
           {HOURS.map(h => (
             <div key={`hh-${h}`} className="absolute pointer-events-none"
-              style={{ top: (h - START_HOUR) * PX_PER_HOUR + PX_PER_HOUR / 2, left: LABEL_W, right: 0, borderTop: '1px dashed #181920' }} />
+              style={{ top: (h - START_HOUR) * PX_PER_HOUR + PX_PER_HOUR / 2, left: LABEL_W, right: 0, borderTop: '1px dashed #252637' }} />
           ))}
 
           <div className="absolute inset-0 cursor-pointer" style={{ left: LABEL_W, zIndex: 1 }} />
