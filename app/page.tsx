@@ -30,7 +30,8 @@ export default function DashboardPage() {
   const goToNext = useCallback(() => {
     setSelectedDate(d => {
       const next = format(addDays(parseISO(d), 1), 'yyyy-MM-dd');
-      return next <= todayStr() ? next : d;
+      const tomorrowStr = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+      return next <= tomorrowStr ? next : d;
     });
   }, []);
 
@@ -118,7 +119,7 @@ export default function DashboardPage() {
       <div className="flex flex-1 overflow-hidden" ref={containerRef}>
         {/* Left — Time Blocking */}
         <div className="flex flex-col overflow-hidden shrink-0" style={{ width: `${leftWidth}%` }}>
-          <TimeBlockingPanel />
+          <TimeBlockingPanel date={selectedDate} />
         </div>
 
         <div {...divider(onLeftDividerDown, 'col')} />

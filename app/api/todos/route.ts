@@ -2,10 +2,9 @@ export const runtime = 'nodejs';
 
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { format, subDays } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
 
 const today = () => format(new Date(), 'yyyy-MM-dd');
-const yesterday = () => format(subDays(new Date(), 1), 'yyyy-MM-dd');
 
 export async function GET(req: Request) {
   try {
@@ -17,10 +16,11 @@ export async function GET(req: Request) {
       orderBy: { position: 'asc' },
     });
 
-    // Rollover: if today has no entries yet, copy undone from yesterday
-    if (todos.length === 0 && date === today()) {
+    // Rollover: if this date has no entries yet, copy undone from the previous day
+    if (todos.length === 0) {
+      const prevDate = format(subDays(parseISO(date), 1), 'yyyy-MM-dd');
       const prev = await prisma.todo.findMany({
-        where: { date: yesterday(), done: false },
+        where: { date: prevDate, done: false },
         orderBy: { position: 'asc' },
       });
       if (prev.length > 0) {

@@ -17,7 +17,9 @@ interface TimeBlock {
   color: string;
 }
 
-export function TimeBlockingPanel() {
+interface Props { date: string; } // YYYY-MM-DD
+
+export function TimeBlockingPanel({ date }: Props) {
   const now = useClientNow();
   const [blocks, setBlocks] = useState<TimeBlock[]>([]);
   const [modal, setModal] = useState<{ start: number; end: number; task: string; id?: string } | null>(null);
@@ -27,13 +29,10 @@ export function TimeBlockingPanel() {
   const drag = useRef<{ id: string; origStart: number; origEnd: number; pointerStartY: number } | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  // DB fetch
-  const todayStr = now ? format(now, 'yyyy-MM-dd') : null;
-
   const fetchBlocks = useCallback(async () => {
-    if (!todayStr) return;
+    if (!date) return;
     try {
-      const res = await fetch(`/api/time-blocks?date=${todayStr}`);
+      const res = await fetch(`/api/time-blocks?date=${date}`);
       if (res.ok) {
         const data = await res.json();
         setBlocks(data.map((b: Record<string, unknown>) => ({
@@ -45,13 +44,11 @@ export function TimeBlockingPanel() {
         })));
       }
     } catch { /* fallback to empty */ }
-  }, [todayStr]);
+  }, [date]);
 
   useEffect(() => {
     setMounted(true);
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = Math.max(0, new Date().getHours() - 2 - START_HOUR) * PX_PER_HOUR;
-    }
+    setBlocks([]);
     fetchBlocks();
   }, [fetchBlocks]);
 
@@ -123,7 +120,7 @@ export function TimeBlockingPanel() {
         const res = await fetch('/api/time-blocks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ task, startMinute: start, endMinute: end, color, date: todayStr }),
+          body: JSON.stringify({ task, startMinute: start, endMinute: end, color, date }),
         });
         if (res.ok) {
           const created = await res.json();
@@ -142,7 +139,7 @@ export function TimeBlockingPanel() {
 
   return (
     <div className="flex flex-col h-full select-none">
-      <SectionHeader title="Time Blocking" subtitle={mounted && now ? format(now, 'EEE, MMM d') : ''} />
+      <SectionHeader title="Time Blocking" subtitle={mounted ? date : ''} />
 
       <div
         ref={scrollRef}
@@ -174,7 +171,7 @@ export function TimeBlockingPanel() {
 
           <div className="absolute inset-0 cursor-pointer" style={{ left: LABEL_W, zIndex: 1 }} />
 
-          {mounted && now && (
+          {mounted && now && date === format(now, 'yyyy-MM-dd') && (
             <div className="absolute right-0 flex items-center pointer-events-none z-10"
               style={{ top: nowPx, left: LABEL_W - 4 }}>
               <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#ff4757', marginLeft: -3 }} />

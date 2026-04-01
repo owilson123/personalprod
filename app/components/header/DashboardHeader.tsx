@@ -1,6 +1,6 @@
 'use client';
 
-import { format, isYesterday, isToday as fnsIsToday, parseISO } from 'date-fns';
+import { format, isYesterday, parseISO } from 'date-fns';
 import { Clock } from '@/app/components/ui/Clock';
 
 interface Props {
@@ -9,9 +9,13 @@ interface Props {
   onNext: () => void;
 }
 
+const todayStr = () => format(new Date(), 'yyyy-MM-dd');
+const tomorrowStr = () => format(new Date(Date.now() + 86400000), 'yyyy-MM-dd');
+
 function dateLabel(dateStr: string) {
+  if (dateStr === todayStr()) return 'Today';
+  if (dateStr === tomorrowStr()) return 'Tomorrow';
   const d = parseISO(dateStr);
-  if (fnsIsToday(d)) return 'Today';
   if (isYesterday(d)) return 'Yesterday';
   const thisYear = new Date().getFullYear();
   return d.getFullYear() === thisYear
@@ -31,7 +35,8 @@ function Chevron({ dir }: { dir: 'left' | 'right' }) {
 }
 
 export function DashboardHeader({ selectedDate, onPrev, onNext }: Props) {
-  const isToday = fnsIsToday(parseISO(selectedDate));
+  const isToday = selectedDate === todayStr();
+  const isFuture = selectedDate >= tomorrowStr();
   const label = dateLabel(selectedDate);
 
   const btnBase: React.CSSProperties = {
@@ -99,9 +104,9 @@ export function DashboardHeader({ selectedDate, onPrev, onNext }: Props) {
           </div>
 
           <button
-            style={{ ...btnBase, opacity: isToday ? 0.3 : 1, cursor: isToday ? 'default' : 'pointer' }}
-            onClick={isToday ? undefined : onNext}
-            onMouseEnter={e => { if (!isToday) { e.currentTarget.style.borderColor = '#3a3b52'; e.currentTarget.style.color = '#c8c8d4'; e.currentTarget.style.background = '#1a1b23'; } }}
+            style={{ ...btnBase, opacity: isFuture ? 0.3 : 1, cursor: isFuture ? 'default' : 'pointer' }}
+            onClick={isFuture ? undefined : onNext}
+            onMouseEnter={e => { if (!isFuture) { e.currentTarget.style.borderColor = '#3a3b52'; e.currentTarget.style.color = '#c8c8d4'; e.currentTarget.style.background = '#1a1b23'; } }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2b3d'; e.currentTarget.style.color = '#52536a'; e.currentTarget.style.background = 'transparent'; }}
           >
             <Chevron dir="right" />
