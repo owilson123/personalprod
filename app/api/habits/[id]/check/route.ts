@@ -5,14 +5,24 @@ import { NextResponse } from 'next/server';
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } } // <--- NOT a Promise
+  { params }: { params: { id: string } }
 ) {
   try {
     const { id: habitId } = params;
     const { date } = await req.json();
-    const dateObj = new Date(date);
 
-    // Toggle: if check exists, delete it; otherwise create it
+    if (!date) {
+      return NextResponse.json({ error: 'Date is required' }, { status: 400 });
+    }
+
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
+    }
+
+    // Normalize to UTC midnight for consistent matching
+    dateObj.setUTCHours(0, 0, 0, 0);
+
     const existing = await prisma.habitCheck.findUnique({
       where: { habitId_date: { habitId, date: dateObj } },
     });
@@ -25,7 +35,7 @@ export async function POST(
       return NextResponse.json({ checked: true });
     }
   } catch (err) {
-    console.error(err); // helpful for debugging
+    console.error(err);
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }
