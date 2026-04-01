@@ -1,0 +1,59 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Todo {
+  id        String   @id @default(cuid())
+  text      String
+  done      Boolean  @default(false)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Note {
+  id        String   @id @default("singleton")
+  content   String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
+model Habit {
+  id        String       @id @default(cuid())
+  name      String
+  position  Int          @default(0)
+  createdAt DateTime     @default(now())
+  checks    HabitCheck[]
+}
+
+model HabitCheck {
+  id      String  @id @default(cuid())
+  habitId String
+  date    DateTime @db.Date
+  checked Boolean  @default(true)
+  habit   Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+}
+
+model TimeBlock {
+  id          String   @id @default(cuid())
+  task        String
+  startMinute Int
+  endMinute   Int
+  color       String
+  date        DateTime @db.Date
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WatchlistItem {
+  id        String   @id @default(cuid())
+  symbol    String   @unique
+  name      String   @default("")
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+}

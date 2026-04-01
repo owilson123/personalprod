@@ -1,33 +1,68 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
 
-/* Global font and dark mode colors */
 :root {
-  --bg-dark: #202123;
-  --bg-input: #343541;
-  --text-main: #d9d9d9;
-  --text-light: #e5e5e5;
-  --border-gray: #555;
+  --bg-dark: #0f1117;
+  --bg-card: #1a1b23;
+  --bg-input: #242530;
+  --text-main: #f0f0f5;
+  --text-secondary: #8b8ca0;
+  --text-muted: #52536a;
+  --border-main: #2a2b3d;
+  --border-subtle: #1e1f2a;
+  --accent-blue: #4f7df9;
+  --accent-green: #00d084;
+  --accent-red: #ff4757;
 }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
 
 body {
-  font-family: "Inter", sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-main);
-  margin: 0;
-  padding: 0;
 }
 
-input, textarea {
-  font-family: "Inter", sans-serif;
-  color: var(--text-light);
+input, textarea, select {
+  font-family: "Inter", system-ui, sans-serif;
+  color: var(--text-main);
   background-color: var(--bg-input);
-  border: 1px solid var(--border-gray);
+  border: 1px solid var(--border-main);
   outline: none;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.5rem;
 }
 
-/* Tailwind base */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(79, 125, 249, 0.15);
+}
+
+a { text-decoration: none; }
+[data-block] { user-select: none; }
+
+/* Scrollbar */
+.scrollbar-thin::-webkit-scrollbar { width: 5px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #2a2b3d; border-radius: 3px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #3a3b4d; }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes checkBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.88); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-check-bounce {
+  animation: checkBounce 0.2s ease-out;
+}
