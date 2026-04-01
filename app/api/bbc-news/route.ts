@@ -1,6 +1,7 @@
 import Parser from "rss-parser";
 
 export async function GET() {
+
   const parser = new Parser();
   const feed = await parser.parseURL(
     "http://feeds.bbci.co.uk/news/rss.xml"
@@ -12,4 +13,5 @@ export async function GET() {
   }));
 
   return Response.json(items);
+
 }
