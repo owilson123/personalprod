@@ -2,6 +2,13 @@ export const runtime = 'nodejs';
 
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
+
+type HabitWithChecks = Prisma.HabitGetPayload<{
+  include: {
+    checks: true;
+  };
+}>;
 
 export async function GET(req: Request) {
   try {
@@ -26,7 +33,7 @@ export async function GET(req: Request) {
     // Map checks into a 7-day boolean array (Mon=0, Sun=6)
     if (from) {
       const startDate = new Date(from);
-      const mapped = habits.map(h => {
+      const mapped = habits.map((h: HabitWithChecks) => {
         const checksArr = Array(7).fill(false);
         h.checks.forEach(c => {
           const checkDate = new Date(c.date);
