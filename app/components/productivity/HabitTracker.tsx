@@ -121,7 +121,7 @@ export function HabitTracker() {
           <div className="flex-1 min-w-0" />
           <div className="flex gap-1 shrink-0">
             {dayLabels.map((d, i) => (
-              <div key={i} className="flex flex-col items-center" style={{ width: 28 }}>
+              <div key={i} className="flex flex-col items-center" style={{ width: 22 }}>
                 <span style={{
                   fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
                   color: d.isToday ? '#4f7df9' : '#52536a',
@@ -135,7 +135,7 @@ export function HabitTracker() {
 
         <div className="flex-1 overflow-y-auto space-y-1 scrollbar-thin">
           {habits.map(h => (
-            <div key={h.id} className="flex items-center rounded-lg px-2.5 py-2 group gap-2" style={{ background: '#1a1b23' }}>
+            <div key={h.id} className="flex items-center rounded-lg px-2.5 py-1 group gap-2" style={{ background: '#1a1b23' }}>
               {editId === h.id ? (
                 <input autoFocus value={h.name}
                   onChange={e => rename(h.id, e.target.value)}
@@ -159,7 +159,7 @@ export function HabitTracker() {
                       title={weekDays[i] ? format(weekDays[i], 'EEE d MMM') : ''}
                       className="transition-all"
                       style={{
-                        width: 28, height: 28, flexShrink: 0, borderRadius: 6,
+                        width: 22, height: 22, flexShrink: 0, borderRadius: 5,
                         border: checked ? 'none' : isToday ? '2px solid rgba(79,125,249,0.6)' : '1px solid #2a2b3d',
                         background: checked ? '#00d084' : 'transparent',
                         cursor: 'pointer',

@@ -132,7 +132,7 @@ export function TodoList() {
           )}
           {todos.map(t => (
             <div key={t.id}
-              className={`flex items-center rounded-lg px-2.5 py-2 group gap-2 transition-all ${t.done ? 'opacity-60' : ''}`}
+              className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${t.done ? 'opacity-60' : ''}`}
               style={{ background: '#1a1b23' }}>
               {editId === t.id ? (
                 <input autoFocus value={editTxt}
@@ -153,7 +153,7 @@ export function TodoList() {
                 onClick={() => toggle(t.id)}
                 className="transition-all"
                 style={{
-                  width: 28, height: 28, flexShrink: 0,
+                  width: 22, height: 22, flexShrink: 0,
                   borderRadius: 6,
                   border: t.done ? 'none' : '1px solid #2a2b3d',
                   background: t.done ? '#00d084' : 'transparent',

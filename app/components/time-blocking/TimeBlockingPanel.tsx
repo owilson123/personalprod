@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent } from 'react';
 import { format } from 'date-fns';
-import { COLORS, HOURS, PX_PER_HOUR, PX_PER_MIN, LABEL_W } from '@/lib/constants';
+import { COLORS, HOURS, PX_PER_HOUR, PX_PER_MIN, LABEL_W, START_HOUR, END_HOUR } from '@/lib/constants';
 import { uid, minsToLabel, formatHour, snapToFive, clamp } from '@/lib/helpers';
 import { useClientNow } from '@/app/hooks/useClientNow';
 import { SectionHeader } from '@/app/components/ui/SectionHeader';
@@ -50,12 +50,12 @@ export function TimeBlockingPanel() {
   useEffect(() => {
     setMounted(true);
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = Math.max(0, new Date().getHours() - 2) * PX_PER_HOUR;
+      scrollRef.current.scrollTop = Math.max(0, new Date().getHours() - 2 - START_HOUR) * PX_PER_HOUR;
     }
     fetchBlocks();
   }, [fetchBlocks]);
 
-  const nowPx = now ? (now.getHours() * 60 + now.getMinutes()) * PX_PER_MIN : -999;
+  const nowPx = now ? (now.getHours() * 60 + now.getMinutes() - START_HOUR * 60) * PX_PER_MIN : -999;
 
   const handleCanvasClick = (e: RMouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -63,9 +63,9 @@ export function TimeBlockingPanel() {
     const rect = containerRef.current.getBoundingClientRect();
     const scrollY = scrollRef.current?.scrollTop ?? 0;
     const y = e.clientY - rect.top + scrollY;
-    const rawMin = y / PX_PER_MIN;
+    const rawMin = y / PX_PER_MIN + START_HOUR * 60;
     const snap = snapToFive(rawMin);
-    const start = clamp(snap, 0, 23 * 60 + 30);
+    const start = clamp(snap, START_HOUR * 60, END_HOUR * 60 + 30);
     const end = clamp(start + 30, 0, 24 * 60);
     setModal({ start, end, task: '' });
   };
@@ -154,12 +154,12 @@ export function TimeBlockingPanel() {
         <div
           ref={containerRef}
           className="relative"
-          style={{ height: 24 * PX_PER_HOUR }}
+          style={{ height: (END_HOUR - START_HOUR + 1) * PX_PER_HOUR }}
           onClick={handleCanvasClick}
         >
           {HOURS.map(h => (
             <div key={h} className="absolute left-0 right-0 flex pointer-events-none"
-              style={{ top: h * PX_PER_HOUR, height: PX_PER_HOUR }}>
+              style={{ top: (h - START_HOUR) * PX_PER_HOUR, height: PX_PER_HOUR }}>
               <div className="flex items-start justify-end pt-1 pr-2 shrink-0" style={{ width: LABEL_W }}>
                 <span style={{ fontSize: 11, color: '#52536a', fontWeight: 500 }}>{formatHour(h)}</span>
               </div>
@@ -169,7 +169,7 @@ export function TimeBlockingPanel() {
 
           {HOURS.map(h => (
             <div key={`hh-${h}`} className="absolute pointer-events-none"
-              style={{ top: h * PX_PER_HOUR + PX_PER_HOUR / 2, left: LABEL_W, right: 0, borderTop: '1px dashed #181920' }} />
+              style={{ top: (h - START_HOUR) * PX_PER_HOUR + PX_PER_HOUR / 2, left: LABEL_W, right: 0, borderTop: '1px dashed #181920' }} />
           ))}
 
           <div className="absolute inset-0 cursor-pointer" style={{ left: LABEL_W, zIndex: 1 }} />
@@ -183,7 +183,7 @@ export function TimeBlockingPanel() {
           )}
 
           {blocks.map(block => {
-            const topPx = block.startMinute * PX_PER_MIN;
+            const topPx = (block.startMinute - START_HOUR * 60) * PX_PER_MIN;
             const heightPx = Math.max((block.endMinute - block.startMinute) * PX_PER_MIN, 28);
             const isShort = heightPx < 44;
 
