@@ -3,9 +3,12 @@ export const runtime = 'nodejs';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } } // <--- NOT a Promise
+) {
   try {
-    const { id: habitId } = await params;
+    const { id: habitId } = params;
     const { date } = await req.json();
     const dateObj = new Date(date);
 
@@ -21,7 +24,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       await prisma.habitCheck.create({ data: { habitId, date: dateObj } });
       return NextResponse.json({ checked: true });
     }
-  } catch {
+  } catch (err) {
+    console.error(err); // helpful for debugging
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }
