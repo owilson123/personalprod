@@ -139,7 +139,7 @@ export function TodoList({ date }: Props) {
               </p>
             </div>
           )}
-          {todos.map(t => (
+          {[...todos].sort((a, b) => Number(a.done) - Number(b.done)).map(t => (
             <div key={t.id}
               className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${t.done ? 'opacity-60' : ''}`}
               style={{ background: '#1a1b23' }}>
