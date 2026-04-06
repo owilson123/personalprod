@@ -58,3 +58,8 @@ model WatchlistItem {
   position  Int      @default(0)
   createdAt DateTime @default(now())
 }
+
+model UserPreference {
+  key   String @id
+  value String
+}

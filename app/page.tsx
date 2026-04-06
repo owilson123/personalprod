@@ -35,15 +35,39 @@ export default function DashboardPage() {
     });
   }, []);
 
-  const [leftWidth,   setLeftWidth]   = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.leftWidth')  || 25));
-  const [rightWidth,  setRightWidth]  = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.rightWidth') || 25));
-  const [todoHeight,  setTodoHeight]  = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.todoHeight') || 30));
-  const [bottomTab,   setBottomTab]   = useState<'habits' | 'notes'>(() => (typeof window !== 'undefined' && localStorage.getItem('layout.bottomTab') as 'habits' | 'notes') || 'habits');
+  const [leftWidth,   setLeftWidth]   = useState(() => Number(localStorage.getItem('layout.leftWidth')  || 25));
+  const [rightWidth,  setRightWidth]  = useState(() => Number(localStorage.getItem('layout.rightWidth') || 25));
+  const [todoHeight,  setTodoHeight]  = useState(() => Number(localStorage.getItem('layout.todoHeight') || 30));
+  const [bottomTab,   setBottomTab]   = useState<'habits' | 'notes'>(() => (localStorage.getItem('layout.bottomTab') as 'habits' | 'notes') || 'habits');
 
-  useEffect(() => { localStorage.setItem('layout.leftWidth',  String(leftWidth));  }, [leftWidth]);
-  useEffect(() => { localStorage.setItem('layout.rightWidth', String(rightWidth)); }, [rightWidth]);
-  useEffect(() => { localStorage.setItem('layout.todoHeight', String(todoHeight)); }, [todoHeight]);
-  useEffect(() => { localStorage.setItem('layout.bottomTab',  bottomTab);          }, [bottomTab]);
+  // Load layout from DB on mount (overrides localStorage if DB has values)
+  useEffect(() => {
+    fetch('/api/preferences')
+      .then(r => r.ok ? r.json() : null)
+      .then((prefs: Record<string, string> | null) => {
+        if (!prefs) return;
+        if (prefs['layout.leftWidth'])  setLeftWidth(Number(prefs['layout.leftWidth']));
+        if (prefs['layout.rightWidth']) setRightWidth(Number(prefs['layout.rightWidth']));
+        if (prefs['layout.todoHeight']) setTodoHeight(Number(prefs['layout.todoHeight']));
+        if (prefs['layout.bottomTab'])  setBottomTab(prefs['layout.bottomTab'] as 'habits' | 'notes');
+      })
+      .catch(() => {});
+  }, []);
+
+  // Save to localStorage immediately and to DB with debounce
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleDbSave = useCallback((patch: Record<string, string>) => {
+    Object.entries(patch).forEach(([k, v]) => localStorage.setItem(k, v));
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      fetch('/api/preferences', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) }).catch(() => {});
+    }, 1000);
+  }, []);
+
+  useEffect(() => { scheduleDbSave({ 'layout.leftWidth':  String(leftWidth)  }); }, [leftWidth,  scheduleDbSave]);
+  useEffect(() => { scheduleDbSave({ 'layout.rightWidth': String(rightWidth) }); }, [rightWidth, scheduleDbSave]);
+  useEffect(() => { scheduleDbSave({ 'layout.todoHeight': String(todoHeight) }); }, [todoHeight, scheduleDbSave]);
+  useEffect(() => { scheduleDbSave({ 'layout.bottomTab':  bottomTab          }); }, [bottomTab,  scheduleDbSave]);
 
   const containerRef  = useRef<HTMLDivElement>(null);
   const middleColRef  = useRef<HTMLDivElement>(null);
