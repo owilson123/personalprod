@@ -43,6 +43,8 @@ model HabitCheck {
 model TimeBlock {
   id          String   @id @default(cuid())
   task        String
+  tasks       Json     @default("[]")
+  isSuperBlock Boolean @default(false)
   startMinute Int
   endMinute   Int
   color       String

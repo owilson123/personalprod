@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { uid } from '@/lib/helpers';
 import { SectionHeader } from '@/app/components/ui/SectionHeader';
+import { useTodoDrag } from '@/app/components/todo-drag-context';
 
 interface Todo { id: string; text: string; done: boolean; }
 
@@ -16,6 +17,9 @@ export function TodoList({ date }: Props) {
   const [editTxt, setEditTxt] = useState('');
   const [ready, setReady] = useState(false);
   const [useLocal, setUseLocal] = useState(false);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  const { setDragTodo } = useTodoDrag();
 
   const localKey = `dash-todos-${date}`;
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -139,46 +143,100 @@ export function TodoList({ date }: Props) {
               </p>
             </div>
           )}
-          {[...todos].sort((a, b) => Number(a.done) - Number(b.done)).map(t => (
-            <div key={t.id}
-              className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${t.done ? 'opacity-60' : ''}`}
-              style={{ background: '#1a1b23' }}>
-              {editId === t.id ? (
-                <input autoFocus value={editTxt}
-                  onChange={e => setEditTxt(e.target.value)}
-                  onBlur={() => save(t.id)}
-                  onKeyDown={e => { if (e.key === 'Enter') save(t.id); if (e.key === 'Escape') setEditId(null); }}
-                  className="flex-1 min-w-0 bg-transparent text-sm text-white focus:outline-none border-b border-blue-500" />
-              ) : (
-                <span
-                  onDoubleClick={() => { setEditId(t.id); setEditTxt(t.text); }}
-                  title="Double-click to edit"
-                  className={`flex-1 min-w-0 text-sm truncate select-none cursor-pointer ${t.done ? 'line-through' : 'text-white'}`}
-                  style={t.done ? { color: '#52536a' } : {}}>
-                  {t.text}
-                </span>
-              )}
-              <button
-                onClick={() => toggle(t.id)}
-                className="transition-all"
-                style={{
-                  width: 22, height: 22, flexShrink: 0,
-                  borderRadius: 6,
-                  border: t.done ? 'none' : '1px solid #2a2b3d',
-                  background: t.done ? '#00d084' : 'transparent',
-                  cursor: 'pointer',
-                  boxShadow: t.done ? '0 0 10px rgba(0,208,132,0.3)' : 'none',
+          {[...todos].sort((a, b) => Number(a.done) - Number(b.done)).map(t => {
+            const canDrag = !t.done && editId !== t.id;
+            return (
+              <div
+                key={t.id}
+                draggable={canDrag}
+                onDragStart={e => {
+                  setDraggingId(t.id);
+                  setDragTodo({ id: t.id, text: t.text });
+                  e.dataTransfer.setData('application/todo-json', JSON.stringify({ id: t.id, text: t.text }));
+                  e.dataTransfer.effectAllowed = 'copy';
+                  // Custom drag ghost
+                  const ghost = document.createElement('div');
+                  ghost.textContent = t.text;
+                  ghost.style.cssText = [
+                    'position:fixed', 'top:-200px', 'left:0',
+                    'background:#1e1f2e', 'color:#fff', 'font-size:13px', 'font-weight:600',
+                    'font-family:Inter,system-ui,sans-serif',
+                    'padding:8px 16px', 'border-radius:10px',
+                    'border:1px solid #4f7df9',
+                    'box-shadow:0 8px 24px rgba(79,125,249,0.4)',
+                    'pointer-events:none', 'white-space:nowrap',
+                    'max-width:240px', 'overflow:hidden', 'text-overflow:ellipsis',
+                  ].join(';');
+                  document.body.appendChild(ghost);
+                  e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
+                  requestAnimationFrame(() => {
+                    if (document.body.contains(ghost)) document.body.removeChild(ghost);
+                  });
                 }}
-              />
-              <button onClick={() => del(t.id)}
-                className="flex items-center justify-center text-lg leading-none opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                style={{ width: 20, height: 20, color: '#52536a' }}
-                onMouseOver={e => (e.currentTarget.style.color = '#ff4757')}
-                onMouseOut={e => (e.currentTarget.style.color = '#52536a')}>
-                ×
-              </button>
-            </div>
-          ))}
+                onDragEnd={() => {
+                  setDraggingId(null);
+                  setDragTodo(null);
+                }}
+                className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${t.done ? 'opacity-60' : ''} ${draggingId === t.id ? 'opacity-40 scale-95' : ''}`}
+                style={{
+                  background: '#1a1b23',
+                  cursor: canDrag ? 'grab' : 'default',
+                }}
+              >
+                {/* Drag handle — shown on hover for draggable items */}
+                {canDrag && (
+                  <div
+                    className="opacity-0 group-hover:opacity-30 transition-opacity shrink-0"
+                    style={{ color: '#8b8ca0', lineHeight: 0 }}
+                  >
+                    <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                      <circle cx="3" cy="3"  r="1.3"/>
+                      <circle cx="7" cy="3"  r="1.3"/>
+                      <circle cx="3" cy="7"  r="1.3"/>
+                      <circle cx="7" cy="7"  r="1.3"/>
+                      <circle cx="3" cy="11" r="1.3"/>
+                      <circle cx="7" cy="11" r="1.3"/>
+                    </svg>
+                  </div>
+                )}
+
+                {editId === t.id ? (
+                  <input autoFocus value={editTxt}
+                    onChange={e => setEditTxt(e.target.value)}
+                    onBlur={() => save(t.id)}
+                    onKeyDown={e => { if (e.key === 'Enter') save(t.id); if (e.key === 'Escape') setEditId(null); }}
+                    className="flex-1 min-w-0 bg-transparent text-sm text-white focus:outline-none border-b border-blue-500" />
+                ) : (
+                  <span
+                    onDoubleClick={() => { setEditId(t.id); setEditTxt(t.text); }}
+                    title={canDrag ? 'Drag to time block · Double-click to edit' : 'Double-click to edit'}
+                    className={`flex-1 min-w-0 text-sm truncate select-none ${t.done ? 'line-through' : 'text-white'}`}
+                    style={t.done ? { color: '#52536a' } : {}}>
+                    {t.text}
+                  </span>
+                )}
+                <button
+                  onClick={() => toggle(t.id)}
+                  className="transition-all"
+                  style={{
+                    width: 22, height: 22, flexShrink: 0,
+                    borderRadius: 6,
+                    border: t.done ? 'none' : '1px solid #2a2b3d',
+                    background: t.done ? '#00d084' : 'transparent',
+                    cursor: 'pointer',
+                    boxShadow: t.done ? '0 0 10px rgba(0,208,132,0.3)' : 'none',
+                  }}
+                />
+                <button onClick={() => del(t.id)}
+                  className="flex items-center justify-center text-lg leading-none opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                  style={{ width: 20, height: 20, color: '#52536a', background: 'none', border: 'none', cursor: 'pointer' }}
+                  onMouseOver={e => (e.currentTarget.style.color = '#ff4757')}
+                  onMouseOut={e => (e.currentTarget.style.color = '#52536a')}>
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
         {!isPast && (
           <div className="flex gap-2 mt-2 pt-2" style={{ borderTop: '1px solid #2a2b3d' }}>

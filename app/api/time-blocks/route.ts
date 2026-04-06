@@ -21,9 +21,17 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { task, startMinute, endMinute, color, date } = await req.json();
+    const { task, tasks, isSuperBlock, startMinute, endMinute, color, date } = await req.json();
     const block = await prisma.timeBlock.create({
-      data: { task, startMinute, endMinute, color, date: new Date(date) },
+      data: {
+        task,
+        tasks: tasks ?? [],
+        isSuperBlock: isSuperBlock ?? false,
+        startMinute,
+        endMinute,
+        color,
+        date: new Date(date),
+      },
     });
     return NextResponse.json(block);
   } catch {

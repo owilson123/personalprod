@@ -4,7 +4,14 @@
       "Bash(node -e \":*)",
       "Bash(npx prisma:*)",
       "Bash(node --loader tsx/esm -e \":*)",
-      "Read(//c/Users/owilson/personalprod/**)"
+      "Read(//c/Users/owilson/personalprod/**)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(sed -i 's/^# PWA generated files$/# PWA/' .gitignore)",
+      "Bash(sed -i '/^public\\\\/sw\\\\.js$/d' .gitignore)",
+      "Bash(sed -i '/^public\\\\/workbox.*$/d' .gitignore)",
+      "Bash(sed -i '/^public\\\\/sw\\\\.js\\\\.map$/d' .gitignore)"
     ]
   }
 }

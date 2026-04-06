@@ -8,6 +8,7 @@ import { TodoList } from '@/app/components/productivity/TodoList';
 import { NotesPanel } from '@/app/components/productivity/NotesPanel';
 import { HabitTracker } from '@/app/components/productivity/HabitTracker';
 import { FinancePanel } from '@/app/components/finance/FinancePanel';
+import { TodoDragProvider } from '@/app/components/todo-drag-context';
 
 const MIN_COL = 10; // percent
 const MAX_COL = 60;
@@ -125,6 +126,7 @@ export default function DashboardPage() {
   });
 
   return (
+    <TodoDragProvider>
     <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#0f1117' }}>
       <DashboardHeader
         selectedDate={selectedDate}
@@ -193,5 +195,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </TodoDragProvider>
   );
 }
