@@ -9,6 +9,8 @@ import { NotesPanel } from '@/app/components/productivity/NotesPanel';
 import { HabitTracker } from '@/app/components/productivity/HabitTracker';
 import { FinancePanel } from '@/app/components/finance/FinancePanel';
 import { TodoDragProvider } from '@/app/components/todo-drag-context';
+import { MobileLayout } from '@/app/components/mobile/MobileLayout';
+import { useMobileLayout } from '@/app/hooks/useMobileLayout';
 
 const MIN_COL = 10; // percent
 const MAX_COL = 60;
@@ -17,6 +19,7 @@ const MIN_ROW = 10;
 const todayStr = () => format(new Date(), 'yyyy-MM-dd');
 
 export default function DashboardPage() {
+  const isMobile = useMobileLayout();
   const [selectedDate, setSelectedDate] = useState(todayStr);
 
   // Run one-time schema migration on first load
@@ -124,6 +127,14 @@ export default function DashboardPage() {
     onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = '#3a3b52'),
     onMouseLeave: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = '#1e1f2a'),
   });
+
+  if (isMobile) {
+    return (
+      <TodoDragProvider>
+        <MobileLayout selectedDate={selectedDate} onPrev={goToPrev} onNext={goToNext} />
+      </TodoDragProvider>
+    );
+  }
 
   return (
     <TodoDragProvider>
