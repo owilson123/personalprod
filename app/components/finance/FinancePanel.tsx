@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { MarketSummaryBar } from './MarketSummaryBar';
 import { StockWatchlist } from './StockWatchlist';
 import { MarketMovers } from './MarketMovers';
@@ -11,9 +11,12 @@ const MIN_PCT = 15;
 const dividerStyle = { height: '4px', background: '#1e1f2a', cursor: 'row-resize', flexShrink: 0 as const, transition: 'background 0.15s' };
 
 export function FinancePanel() {
-  const [topPct, setTopPct] = useState(55);
-  const [marketTab, setMarketTab] = useState<'movers' | 'watchlist'>('movers');
+  const [topPct,    setTopPct]    = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('finance.topPct')    || 55));
+  const [marketTab, setMarketTab] = useState<'movers' | 'watchlist'>(() => (typeof window !== 'undefined' && localStorage.getItem('finance.marketTab') as 'movers' | 'watchlist') || 'movers');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { localStorage.setItem('finance.topPct',    String(topPct)); }, [topPct]);
+  useEffect(() => { localStorage.setItem('finance.marketTab', marketTab);      }, [marketTab]);
 
   const onDividerDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();

@@ -35,10 +35,15 @@ export default function DashboardPage() {
     });
   }, []);
 
-  const [leftWidth,   setLeftWidth]   = useState(25);
-  const [rightWidth,  setRightWidth]  = useState(25);
-  const [todoHeight,  setTodoHeight]  = useState(30);
-  const [bottomTab,   setBottomTab]   = useState<'habits' | 'notes'>('habits');
+  const [leftWidth,   setLeftWidth]   = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.leftWidth')  || 25));
+  const [rightWidth,  setRightWidth]  = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.rightWidth') || 25));
+  const [todoHeight,  setTodoHeight]  = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.todoHeight') || 30));
+  const [bottomTab,   setBottomTab]   = useState<'habits' | 'notes'>(() => (typeof window !== 'undefined' && localStorage.getItem('layout.bottomTab') as 'habits' | 'notes') || 'habits');
+
+  useEffect(() => { localStorage.setItem('layout.leftWidth',  String(leftWidth));  }, [leftWidth]);
+  useEffect(() => { localStorage.setItem('layout.rightWidth', String(rightWidth)); }, [rightWidth]);
+  useEffect(() => { localStorage.setItem('layout.todoHeight', String(todoHeight)); }, [todoHeight]);
+  useEffect(() => { localStorage.setItem('layout.bottomTab',  bottomTab);          }, [bottomTab]);
 
   const containerRef  = useRef<HTMLDivElement>(null);
   const middleColRef  = useRef<HTMLDivElement>(null);
