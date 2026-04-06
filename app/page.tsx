@@ -38,7 +38,7 @@ export default function DashboardPage() {
   const [leftWidth,   setLeftWidth]   = useState(25);
   const [rightWidth,  setRightWidth]  = useState(25);
   const [todoHeight,  setTodoHeight]  = useState(30);
-  const [notesHeight, setNotesHeight] = useState(40);
+  const [bottomTab,   setBottomTab]   = useState<'habits' | 'notes'>('habits');
 
   const containerRef  = useRef<HTMLDivElement>(null);
   const middleColRef  = useRef<HTMLDivElement>(null);
@@ -75,27 +75,14 @@ export default function DashboardPage() {
     const totalH = middleColRef.current?.getBoundingClientRect().height ?? 1;
     const onMove = (ev: MouseEvent) => {
       const delta = ((ev.clientY - startY) / totalH) * 100;
-      setTodoHeight(Math.max(MIN_ROW, Math.min(100 - notesHeight - MIN_ROW, startTodo + delta)));
+      setTodoHeight(Math.max(MIN_ROW, Math.min(100 - MIN_ROW, startTodo + delta)));
     };
     const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
-  }, [todoHeight, notesHeight]);
+  }, [todoHeight]);
 
-  const onNotesDividerDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const startY = e.clientY, startNotes = notesHeight;
-    const totalH = middleColRef.current?.getBoundingClientRect().height ?? 1;
-    const onMove = (ev: MouseEvent) => {
-      const delta = ((ev.clientY - startY) / totalH) * 100;
-      setNotesHeight(Math.max(MIN_ROW, Math.min(100 - todoHeight - MIN_ROW, startNotes + delta)));
-    };
-    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  }, [notesHeight, todoHeight]);
-
-  const habitsHeight = 100 - todoHeight - notesHeight;
+  const bottomHeight = 100 - todoHeight;
 
   const divider = (onDown: (e: React.MouseEvent) => void, axis: 'col' | 'row') => ({
     style: {
@@ -124,7 +111,7 @@ export default function DashboardPage() {
 
         <div {...divider(onLeftDividerDown, 'col')} />
 
-        {/* Middle — Todo / Notes / Habits */}
+        {/* Middle — Todo / Habits+Notes */}
         <div className="flex flex-col overflow-hidden flex-1" ref={middleColRef}>
           <div className="overflow-hidden flex flex-col shrink-0" style={{ height: `${todoHeight}%` }}>
             <TodoList date={selectedDate} />
@@ -132,14 +119,40 @@ export default function DashboardPage() {
 
           <div {...divider(onTodoDividerDown, 'row')} />
 
-          <div className="overflow-hidden flex flex-col shrink-0" style={{ height: `${notesHeight}%` }}>
-            <NotesPanel date={selectedDate} />
-          </div>
-
-          <div {...divider(onNotesDividerDown, 'row')} />
-
-          <div className="overflow-hidden flex flex-col" style={{ height: `${habitsHeight}%` }}>
-            <HabitTracker selectedDate={selectedDate} />
+          {/* Tabbed bottom: Habits (default) + Notes */}
+          <div className="overflow-hidden flex flex-col" style={{ height: `${bottomHeight}%` }}>
+            {/* Tab bar */}
+            <div style={{ display: 'flex', background: '#13141c', borderBottom: '1px solid #1e1f2a', flexShrink: 0 }}>
+              {(['habits', 'notes'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setBottomTab(tab)}
+                  style={{
+                    padding: '7px 18px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: bottomTab === tab ? '2px solid #4f7df9' : '2px solid transparent',
+                    color: bottomTab === tab ? '#4f7df9' : '#555770',
+                    cursor: 'pointer',
+                    transition: 'color 0.15s, border-color 0.15s',
+                    marginBottom: '-1px',
+                  }}
+                >
+                  {tab === 'habits' ? 'Habit Tracker' : 'Notes'}
+                </button>
+              ))}
+            </div>
+            {/* Tab content */}
+            <div className="flex-1 overflow-hidden flex flex-col">
+              {bottomTab === 'habits'
+                ? <HabitTracker selectedDate={selectedDate} />
+                : <NotesPanel date={selectedDate} />
+              }
+            </div>
           </div>
         </div>
 

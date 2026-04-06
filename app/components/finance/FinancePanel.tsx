@@ -11,21 +11,17 @@ const MIN_PCT = 15;
 const dividerStyle = { height: '4px', background: '#1e1f2a', cursor: 'row-resize', flexShrink: 0 as const, transition: 'background 0.15s' };
 
 export function FinancePanel() {
-  const [watchlistPct, setWatchlistPct] = useState(40);
-  const [moversPct, setMoversPct] = useState(35);
+  const [topPct, setTopPct] = useState(55);
+  const [marketTab, setMarketTab] = useState<'movers' | 'watchlist'>('movers');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const makeDragger = useCallback((
-    startPct: number,
-    setPct: (v: number) => void,
-    otherPct: number,
-  ) => (e: React.MouseEvent) => {
+  const onDividerDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    const startY = e.clientY;
+    const startY = e.clientY, startPct = topPct;
     const totalH = containerRef.current?.getBoundingClientRect().height ?? 1;
     const onMove = (ev: MouseEvent) => {
       const delta = ((ev.clientY - startY) / totalH) * 100;
-      setPct(Math.max(MIN_PCT, Math.min(100 - otherPct - MIN_PCT, startPct + delta)));
+      setTopPct(Math.max(MIN_PCT, Math.min(100 - MIN_PCT, startPct + delta)));
     };
     const onUp = () => {
       document.removeEventListener('mousemove', onMove);
@@ -33,32 +29,49 @@ export function FinancePanel() {
     };
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
-  }, []);
+  }, [topPct]);
 
-  const newsPct = 100 - watchlistPct - moversPct;
+  const newsPct = 100 - topPct;
 
   return (
     <div className="flex flex-col h-full">
       <MarketSummaryBar />
       <div className="flex-1 flex flex-col overflow-hidden" ref={containerRef}>
-        <div className="overflow-y-auto scrollbar-thin" style={{ height: `${watchlistPct}%` }}>
-          <StockWatchlist />
+
+        {/* Tabbed top: Movers (default) + Watchlist */}
+        <div className="overflow-hidden flex flex-col" style={{ height: `${topPct}%` }}>
+          <div style={{ display: 'flex', background: '#13141c', borderBottom: '1px solid #1e1f2a', flexShrink: 0 }}>
+            {(['movers', 'watchlist'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setMarketTab(tab)}
+                style={{
+                  padding: '7px 18px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: marketTab === tab ? '2px solid #4f7df9' : '2px solid transparent',
+                  color: marketTab === tab ? '#4f7df9' : '#555770',
+                  cursor: 'pointer',
+                  transition: 'color 0.15s, border-color 0.15s',
+                  marginBottom: '-1px',
+                }}
+              >
+                {tab === 'movers' ? 'Market Movers' : 'Watchlist'}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
+            {marketTab === 'movers' ? <MarketMovers /> : <StockWatchlist />}
+          </div>
         </div>
 
         <div
           style={dividerStyle}
-          onMouseDown={makeDragger(watchlistPct, setWatchlistPct, moversPct)}
-          onMouseEnter={e => (e.currentTarget.style.background = '#3a3b52')}
-          onMouseLeave={e => (e.currentTarget.style.background = '#1e1f2a')}
-        />
-
-        <div className="overflow-y-auto scrollbar-thin" style={{ height: `${moversPct}%` }}>
-          <MarketMovers />
-        </div>
-
-        <div
-          style={dividerStyle}
-          onMouseDown={makeDragger(moversPct, setMoversPct, watchlistPct)}
+          onMouseDown={onDividerDown}
           onMouseEnter={e => (e.currentTarget.style.background = '#3a3b52')}
           onMouseLeave={e => (e.currentTarget.style.background = '#1e1f2a')}
         />
