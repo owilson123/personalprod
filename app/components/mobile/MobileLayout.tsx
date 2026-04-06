@@ -74,7 +74,7 @@ export function MobileLayout({ selectedDate, onPrev, onNext }: Props) {
   const [habitsSubTab, setHabitsSubTab] = useState<'habits' | 'notes'>('habits');
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#0f1117' }}>
+    <div className="flex flex-col overflow-hidden" style={{ height: '100dvh', background: '#0f1117' }}>
       <DashboardHeader selectedDate={selectedDate} onPrev={onPrev} onNext={onNext} />
 
       {/* Panel */}
