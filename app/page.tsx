@@ -35,10 +35,10 @@ export default function DashboardPage() {
     });
   }, []);
 
-  const [leftWidth,   setLeftWidth]   = useState(() => Number(localStorage.getItem('layout.leftWidth')  || 25));
-  const [rightWidth,  setRightWidth]  = useState(() => Number(localStorage.getItem('layout.rightWidth') || 25));
-  const [todoHeight,  setTodoHeight]  = useState(() => Number(localStorage.getItem('layout.todoHeight') || 30));
-  const [bottomTab,   setBottomTab]   = useState<'habits' | 'notes'>(() => (localStorage.getItem('layout.bottomTab') as 'habits' | 'notes') || 'habits');
+  const [leftWidth,   setLeftWidth]   = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.leftWidth')  || 25));
+  const [rightWidth,  setRightWidth]  = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.rightWidth') || 25));
+  const [todoHeight,  setTodoHeight]  = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.todoHeight') || 30));
+  const [bottomTab,   setBottomTab]   = useState<'habits' | 'notes'>(() => (typeof window !== 'undefined' && localStorage.getItem('layout.bottomTab') as 'habits' | 'notes') || 'habits');
 
   // Load layout from DB on mount (overrides localStorage if DB has values)
   useEffect(() => {
