@@ -16,13 +16,21 @@ export async function GET(req: Request) {
       orderBy: { position: 'asc' },
     });
 
-    // Rollover: if this date has no entries yet, copy undone from the previous day
+    // Rollover: if this date has no entries yet, look back up to 7 days for the
+    // most recent day that had any todos, then copy over the undone ones.
     if (todos.length === 0) {
-      const prevDate = format(subDays(parseISO(date), 1), 'yyyy-MM-dd');
-      const prev = await prisma.todo.findMany({
-        where: { date: prevDate, done: false },
-        orderBy: { position: 'asc' },
-      });
+      let prev: typeof todos = [];
+      for (let daysBack = 1; daysBack <= 7; daysBack++) {
+        const prevDate = format(subDays(parseISO(date), daysBack), 'yyyy-MM-dd');
+        const dayTodos = await prisma.todo.findMany({
+          where: { date: prevDate },
+          orderBy: { position: 'asc' },
+        });
+        if (dayTodos.length > 0) {
+          prev = dayTodos.filter(t => !t.done);
+          break;
+        }
+      }
       if (prev.length > 0) {
         await prisma.todo.createMany({
           data: prev.map((t, i) => ({ text: t.text, done: false, position: i, date: date })),

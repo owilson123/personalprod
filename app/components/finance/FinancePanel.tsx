@@ -11,12 +11,19 @@ const MIN_PCT = 15;
 const dividerStyle = { height: '4px', background: '#1e1f2a', cursor: 'row-resize', flexShrink: 0 as const, transition: 'background 0.15s' };
 
 export function FinancePanel() {
-  const [topPct,    setTopPct]    = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('finance.topPct')    || 55));
-  const [marketTab, setMarketTab] = useState<'movers' | 'watchlist'>(() => (typeof window !== 'undefined' && localStorage.getItem('finance.marketTab') as 'movers' | 'watchlist') || 'movers');
+  const [topPct,    setTopPct]    = useState(55);
+  const [marketTab, setMarketTab] = useState<'movers' | 'watchlist'>('movers');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Load from DB on mount
+  const prefsLoaded = useRef(false);
+
+  // Load from localStorage first (fast), then DB (cross-device, may override)
   useEffect(() => {
+    const tp = localStorage.getItem('finance.topPct');
+    const mt = localStorage.getItem('finance.marketTab');
+    if (tp) setTopPct(Number(tp));
+    if (mt) setMarketTab(mt as 'movers' | 'watchlist');
+
     fetch('/api/preferences')
       .then(r => r.ok ? r.json() : null)
       .then((prefs: Record<string, string> | null) => {
@@ -24,7 +31,8 @@ export function FinancePanel() {
         if (prefs['finance.topPct'])    setTopPct(Number(prefs['finance.topPct']));
         if (prefs['finance.marketTab']) setMarketTab(prefs['finance.marketTab'] as 'movers' | 'watchlist');
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => { prefsLoaded.current = true; });
   }, []);
 
   // Save to localStorage immediately, DB with debounce
@@ -37,8 +45,8 @@ export function FinancePanel() {
     }, 1000);
   }, []);
 
-  useEffect(() => { scheduleDbSave({ 'finance.topPct':    String(topPct)  }); }, [topPct,     scheduleDbSave]);
-  useEffect(() => { scheduleDbSave({ 'finance.marketTab': marketTab        }); }, [marketTab,  scheduleDbSave]);
+  useEffect(() => { if (prefsLoaded.current) scheduleDbSave({ 'finance.topPct':    String(topPct)  }); }, [topPct,     scheduleDbSave]);
+  useEffect(() => { if (prefsLoaded.current) scheduleDbSave({ 'finance.marketTab': marketTab        }); }, [marketTab,  scheduleDbSave]);
 
   const onDividerDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
