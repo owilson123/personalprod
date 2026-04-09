@@ -1,7 +1,16 @@
-const CACHE = 'command-center-v1';
+const CACHE = 'command-center-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+
+// On activate: take control immediately AND delete any old caches
+self.addEventListener('activate', e => e.waitUntil(
+  Promise.all([
+    self.clients.claim(),
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ),
+  ])
+));
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
