@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1f35"/>
+      <stop offset="100%" stop-color="#0f1117"/>
+    </linearGradient>
+  </defs>
+  <!-- Bar chart bars matching the app logo -->
+  <rect x="104" y="260" width="88" height="188" rx="16" fill="white" opacity="0.85"/>
+  <rect x="212" y="164" width="88" height="284" rx="16" fill="white"/>
+  <rect x="320" y="96" width="88" height="352" rx="16" fill="white" opacity="0.85"/>
+  <!-- Blue accent glow overlay -->
+  <rect x="104" y="260" width="88" height="188" rx="16" fill="#4f7df9" opacity="0.25"/>
+  <rect x="212" y="164" width="88" height="284" rx="16" fill="#4f7df9" opacity="0.25"/>
+  <rect x="320" y="96" width="88" height="352" rx="16" fill="#4f7df9" opacity="0.25"/>
+</svg>
