@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { format, addDays, subDays, parseISO, isToday } from 'date-fns';
+import { format, addDays, subDays, parseISO } from 'date-fns';
 import { DashboardHeader } from '@/app/components/header/DashboardHeader';
 import { TimeBlockingPanel } from '@/app/components/time-blocking/TimeBlockingPanel';
 import { TodoList } from '@/app/components/productivity/TodoList';
 import { NotesPanel } from '@/app/components/productivity/NotesPanel';
 import { HabitTracker } from '@/app/components/productivity/HabitTracker';
 import { FinancePanel } from '@/app/components/finance/FinancePanel';
+import { LoginModal } from '@/app/components/auth/LoginModal';
 
 const MIN_COL = 10; // percent
 const MAX_COL = 60;
@@ -16,12 +17,36 @@ const MIN_ROW = 10;
 const todayStr = () => format(new Date(), 'yyyy-MM-dd');
 
 export default function DashboardPage() {
-  const [selectedDate, setSelectedDate] = useState(todayStr);
+  // ── Auth state ───────────────────────────────────────────────────────────
+  const [authChecked, setAuthChecked] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ name: string; isAdmin: boolean } | null>(null);
 
-  // Run one-time schema migration on first load
   useEffect(() => {
-    fetch('/api/setup', { method: 'POST' }).catch(() => {});
+    // Run setup migration then check session
+    fetch('/api/setup', { method: 'POST' })
+      .catch(() => {})
+      .finally(() => {
+        fetch('/api/auth/me')
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data?.name) setCurrentUser({ name: data.name, isAdmin: data.isAdmin });
+          })
+          .catch(() => {})
+          .finally(() => setAuthChecked(true));
+      });
   }, []);
+
+  function handleLogin(name: string, isAdmin: boolean) {
+    setCurrentUser({ name, isAdmin });
+  }
+
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    setCurrentUser(null);
+  }
+
+  // ── Dashboard state ──────────────────────────────────────────────────────
+  const [selectedDate, setSelectedDate] = useState(todayStr);
 
   const goToPrev = useCallback(() => {
     setSelectedDate(d => format(subDays(parseISO(d), 1), 'yyyy-MM-dd'));
@@ -42,6 +67,7 @@ export default function DashboardPage() {
 
   // Load layout from DB on mount (overrides localStorage if DB has values)
   useEffect(() => {
+    if (!currentUser) return;
     fetch('/api/preferences')
       .then(r => r.ok ? r.json() : null)
       .then((prefs: Record<string, string> | null) => {
@@ -52,7 +78,7 @@ export default function DashboardPage() {
         if (prefs['layout.bottomTab'])  setBottomTab(prefs['layout.bottomTab'] as 'habits' | 'notes');
       })
       .catch(() => {});
-  }, []);
+  }, [currentUser]);
 
   // Save to localStorage immediately and to DB with debounce
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -124,12 +150,24 @@ export default function DashboardPage() {
     onMouseLeave: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = '#1e1f2a'),
   });
 
+  // ── Render ───────────────────────────────────────────────────────────────
+
+  // Show nothing while checking auth (avoids flash)
+  if (!authChecked) {
+    return <div style={{ background: '#0f1117', height: '100vh' }} />;
+  }
+
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#0f1117' }}>
+      {/* Login modal — shown when not authenticated */}
+      {!currentUser && <LoginModal onLogin={handleLogin} />}
+
       <DashboardHeader
         selectedDate={selectedDate}
         onPrev={goToPrev}
         onNext={goToNext}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       <div className="flex flex-1 overflow-hidden" ref={containerRef}>

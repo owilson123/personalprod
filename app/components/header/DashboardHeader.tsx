@@ -7,6 +7,8 @@ interface Props {
   selectedDate: string; // YYYY-MM-DD
   onPrev: () => void;
   onNext: () => void;
+  currentUser?: { name: string; isAdmin: boolean } | null;
+  onLogout?: () => void;
 }
 
 const todayStr = () => format(new Date(), 'yyyy-MM-dd');
@@ -34,7 +36,7 @@ function Chevron({ dir }: { dir: 'left' | 'right' }) {
   );
 }
 
-export function DashboardHeader({ selectedDate, onPrev, onNext }: Props) {
+export function DashboardHeader({ selectedDate, onPrev, onNext, currentUser, onLogout }: Props) {
   const isToday = selectedDate === todayStr();
   const isFuture = selectedDate >= tomorrowStr();
   const label = dateLabel(selectedDate);
@@ -116,18 +118,52 @@ export function DashboardHeader({ selectedDate, onPrev, onNext }: Props) {
         <Clock />
       </div>
 
-      {/* Right — settings */}
+      {/* Right — user + logout */}
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer"
-          style={{ background: '#1a1b23' }}
-          onMouseOver={e => (e.currentTarget.style.background = '#242530')}
-          onMouseOut={e => (e.currentTarget.style.background = '#1a1b23')}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="8" r="2" stroke="#8b8ca0" strokeWidth="1.5" />
-            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"
-              stroke="#8b8ca0" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </div>
+        {currentUser && (
+          <>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '4px 10px 4px 6px',
+              background: '#1a1b23',
+              border: '1px solid #2a2b3d',
+              borderRadius: '8px',
+            }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #4f7df9, #6366f1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0,
+              }}>
+                {currentUser.name[0].toUpperCase()}
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#c8c8d4' }}>
+                {currentUser.name}
+              </span>
+            </div>
+            <button
+              onClick={onLogout}
+              title="Sign out"
+              style={{
+                width: 32, height: 32, borderRadius: 8,
+                border: '1px solid #2a2b3d',
+                background: 'transparent',
+                cursor: 'pointer',
+                color: '#52536a',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#ff4757'; e.currentTarget.style.color = '#ff4757'; e.currentTarget.style.background = 'rgba(255,71,87,0.08)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2b3d'; e.currentTarget.style.color = '#52536a'; e.currentTarget.style.background = 'transparent'; }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
     </header>
   );

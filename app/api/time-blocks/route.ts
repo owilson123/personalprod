@@ -1,16 +1,21 @@
 export const runtime = 'nodejs';
 
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
+
   try {
     const { searchParams } = new URL(req.url);
     const date = searchParams.get('date');
     if (!date) return NextResponse.json([]);
 
     const blocks = await prisma.timeBlock.findMany({
-      where: { date: new Date(date) },
+      where: { userId, date: new Date(date) },
       orderBy: { startMinute: 'asc' },
     });
     return NextResponse.json(blocks);
@@ -20,10 +25,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
+
   try {
     const { task, startMinute, endMinute, color, date } = await req.json();
     const block = await prisma.timeBlock.create({
-      data: { task, startMinute, endMinute, color, date: new Date(date) },
+      data: { userId, task, startMinute, endMinute, color, date: new Date(date) },
     });
     return NextResponse.json(block);
   } catch {

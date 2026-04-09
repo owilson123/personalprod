@@ -6,8 +6,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model User {
+  id        String   @id
+  name      String   @unique
+  password  String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
 model Todo {
   id        String   @id @default(cuid())
+  userId    String   @default("usr_olly")
   text      String
   done      Boolean  @default(false)
   position  Int      @default(0)
@@ -17,13 +26,15 @@ model Todo {
 }
 
 model Note {
-  id        String   @id @default("singleton")
+  id        String   @id   // "{userId}-note-{date}"
+  userId    String   @default("usr_olly")
   content   String   @default("")
   updatedAt DateTime @updatedAt
 }
 
 model Habit {
   id        String       @id @default(cuid())
+  userId    String       @default("usr_olly")
   name      String
   position  Int          @default(0)
   createdAt DateTime     @default(now())
@@ -31,7 +42,7 @@ model Habit {
 }
 
 model HabitCheck {
-  id      String  @id @default(cuid())
+  id      String   @id @default(cuid())
   habitId String
   date    DateTime @db.Date
   checked Boolean  @default(true)
@@ -42,6 +53,7 @@ model HabitCheck {
 
 model TimeBlock {
   id          String   @id @default(cuid())
+  userId      String   @default("usr_olly")
   task        String
   startMinute Int
   endMinute   Int
@@ -53,13 +65,19 @@ model TimeBlock {
 
 model WatchlistItem {
   id        String   @id @default(cuid())
-  symbol    String   @unique
+  userId    String   @default("usr_olly")
+  symbol    String
   name      String   @default("")
   position  Int      @default(0)
   createdAt DateTime @default(now())
+
+  @@unique([userId, symbol])
 }
 
 model UserPreference {
-  key   String @id
-  value String
+  userId String @default("usr_olly")
+  key    String
+  value  String
+
+  @@id([userId, key])
 }

@@ -1,6 +1,7 @@
 export const runtime = 'nodejs';
 
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 
@@ -11,12 +12,17 @@ type HabitWithChecks = Prisma.HabitGetPayload<{
 }>;
 
 export async function GET(req: Request) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
+
   try {
     const { searchParams } = new URL(req.url);
     const from = searchParams.get('from');
     const to = searchParams.get('to');
 
     const habits = await prisma.habit.findMany({
+      where: { userId },
       orderBy: { position: 'asc' },
       include: {
         checks: from && to ? {
@@ -30,7 +36,6 @@ export async function GET(req: Request) {
       },
     });
 
-    // Map checks into a 7-day boolean array (Mon=0, Sun=6)
     if (from) {
       const startDate = new Date(from);
       const mapped = habits.map((h: HabitWithChecks) => {
@@ -52,10 +57,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
+
   try {
     const { name } = await req.json();
-    const count = await prisma.habit.count();
-    const habit = await prisma.habit.create({ data: { name, position: count } });
+    const count = await prisma.habit.count({ where: { userId } });
+    const habit = await prisma.habit.create({ data: { userId, name, position: count } });
     return NextResponse.json(habit);
   } catch {
     return NextResponse.json({ error: 'DB unavailable' }, { status: 503 });

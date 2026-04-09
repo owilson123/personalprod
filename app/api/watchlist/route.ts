@@ -1,11 +1,19 @@
 export const runtime = 'nodejs';
 
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
+
   try {
-    const items = await prisma.watchlistItem.findMany({ orderBy: { position: 'asc' } });
+    const items = await prisma.watchlistItem.findMany({
+      where: { userId },
+      orderBy: { position: 'asc' },
+    });
     return NextResponse.json(items);
   } catch {
     return NextResponse.json([], { status: 503 });
@@ -13,11 +21,15 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
+
   try {
     const { symbol, name } = await req.json();
-    const count = await prisma.watchlistItem.count();
+    const count = await prisma.watchlistItem.count({ where: { userId } });
     const item = await prisma.watchlistItem.create({
-      data: { symbol: symbol.toUpperCase(), name: name || '', position: count },
+      data: { userId, symbol: symbol.toUpperCase(), name: name || '', position: count },
     });
     return NextResponse.json(item);
   } catch (e) {
