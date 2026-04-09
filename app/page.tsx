@@ -157,11 +157,15 @@ export default function DashboardPage() {
     return <div style={{ background: '#0f1117', height: '100vh' }} />;
   }
 
+  // Show login modal when not authenticated — do NOT mount dashboard panels
+  // until logged in, otherwise they fetch data immediately, get 401, and
+  // won't re-fetch when the session cookie is later set.
+  if (!currentUser) {
+    return <LoginModal onLogin={handleLogin} />;
+  }
+
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#0f1117' }}>
-      {/* Login modal — shown when not authenticated */}
-      {!currentUser && <LoginModal onLogin={handleLogin} />}
-
       <DashboardHeader
         selectedDate={selectedDate}
         onPrev={goToPrev}
