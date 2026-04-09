@@ -9,6 +9,9 @@ import { NotesPanel } from '@/app/components/productivity/NotesPanel';
 import { HabitTracker } from '@/app/components/productivity/HabitTracker';
 import { FinancePanel } from '@/app/components/finance/FinancePanel';
 import { LoginModal } from '@/app/components/auth/LoginModal';
+import { TodoDragProvider } from '@/app/components/todo-drag-context';
+import { MobileLayout } from '@/app/components/mobile/MobileLayout';
+import { useMobileLayout } from '@/app/hooks/useMobileLayout';
 
 const MIN_COL = 10; // percent
 const MAX_COL = 60;
@@ -20,6 +23,9 @@ export default function DashboardPage() {
   // ── Auth state ───────────────────────────────────────────────────────────
   const [authChecked, setAuthChecked] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ name: string; isAdmin: boolean } | null>(null);
+
+  const isMobile = useMobileLayout();
+  const [selectedDate, setSelectedDate] = useState(todayStr);
 
   useEffect(() => {
     // Run setup migration then check session
@@ -44,9 +50,6 @@ export default function DashboardPage() {
     await fetch('/api/auth/logout', { method: 'POST' });
     setCurrentUser(null);
   }
-
-  // ── Dashboard state ──────────────────────────────────────────────────────
-  const [selectedDate, setSelectedDate] = useState(todayStr);
 
   const goToPrev = useCallback(() => {
     setSelectedDate(d => format(subDays(parseISO(d), 1), 'yyyy-MM-dd'));
@@ -158,13 +161,21 @@ export default function DashboardPage() {
   }
 
   // Show login modal when not authenticated — do NOT mount dashboard panels
-  // until logged in, otherwise they fetch data immediately, get 401, and
-  // won't re-fetch when the session cookie is later set.
+  // until logged in, otherwise they fetch data (get 401) and won't re-fetch.
   if (!currentUser) {
     return <LoginModal onLogin={handleLogin} />;
   }
 
+  if (isMobile) {
+    return (
+      <TodoDragProvider>
+        <MobileLayout selectedDate={selectedDate} onPrev={goToPrev} onNext={goToNext} />
+      </TodoDragProvider>
+    );
+  }
+
   return (
+    <TodoDragProvider>
     <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#0f1117' }}>
       <DashboardHeader
         selectedDate={selectedDate}
@@ -235,5 +246,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </TodoDragProvider>
   );
 }

@@ -30,9 +30,9 @@ export async function POST(req: Request) {
   const { userId } = auth;
 
   try {
-    const { task, startMinute, endMinute, color, date } = await req.json();
+    const { task, tasks, isSuperBlock, startMinute, endMinute, color, date } = await req.json();
     const block = await prisma.timeBlock.create({
-      data: { userId, task, startMinute, endMinute, color, date: new Date(date) },
+      data: { userId, task, tasks: tasks ?? [], isSuperBlock: isSuperBlock ?? false, startMinute, endMinute, color, date: new Date(date) },
     });
     return NextResponse.json(block);
   } catch {

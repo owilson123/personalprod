@@ -66,3 +66,17 @@ a { text-decoration: none; }
 .animate-check-bounce {
   animation: checkBounce 0.2s ease-out;
 }
+
+@keyframes ghostPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.drop-ghost {
+  animation: ghostPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes superShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}

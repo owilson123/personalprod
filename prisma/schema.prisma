@@ -55,6 +55,8 @@ model TimeBlock {
   id          String   @id @default(cuid())
   userId      String   @default("usr_olly")
   task        String
+  tasks       Json     @default("[]")
+  isSuperBlock Boolean @default(false)
   startMinute Int
   endMinute   Int
   color       String

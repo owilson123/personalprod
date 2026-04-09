@@ -8,12 +8,13 @@ interface BlockModalProps {
   initialStart: number;
   initialEnd:   number;
   initialTask:  string;
+  title?:       string;
   onSave:   (task: string, start: number, end: number) => void;
   onDelete?: () => void;
   onClose:  () => void;
 }
 
-export function BlockModal({ initialStart, initialEnd, initialTask, onSave, onDelete, onClose }: BlockModalProps) {
+export function BlockModal({ initialStart, initialEnd, initialTask, title, onSave, onDelete, onClose }: BlockModalProps) {
   const [task,  setTask]  = useState(initialTask);
   const [start, setStart] = useState(initialStart);
   const [end,   setEnd]   = useState(initialEnd);
@@ -35,6 +36,8 @@ export function BlockModal({ initialStart, initialEnd, initialTask, onSave, onDe
   const selStyle = { background: '#242530', borderColor: '#2a2b3d' };
   const minOpts = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
+  const heading = title ?? (initialTask ? `Edit: ${initialTask}` : 'New Time Block');
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
@@ -42,13 +45,13 @@ export function BlockModal({ initialStart, initialEnd, initialTask, onSave, onDe
       onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="rounded-2xl p-6 w-full max-w-md shadow-2xl"
+        className="rounded-2xl p-6 w-full max-w-md shadow-2xl animate-fade-in"
         style={{ background: '#1a1b23', border: '1px solid #2a2b3d' }}
         onMouseDown={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-semibold text-white" style={{ fontSize: 17 }}>
-            {initialTask ? `Edit: ${initialTask}` : 'New Time Block'}
+            {heading}
           </h3>
           <button onClick={onClose} style={{ color: '#8b8ca0', fontSize: 22, lineHeight: 1 }}
             className="hover:text-white transition-colors">×</button>

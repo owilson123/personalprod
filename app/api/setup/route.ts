@@ -25,6 +25,14 @@ export async function POST() {
       CREATE TABLE IF NOT EXISTS "UserPreference" (key TEXT PRIMARY KEY, value TEXT NOT NULL)
     `, 'UserPreference legacy table');
 
+    // ── TimeBlock super-block columns (drag-and-drop feature) ──────────────
+    await run(() => prisma.$executeRaw`
+      ALTER TABLE "TimeBlock" ADD COLUMN IF NOT EXISTS "tasks" JSONB NOT NULL DEFAULT '[]'::jsonb
+    `, 'TimeBlock.tasks');
+    await run(() => prisma.$executeRaw`
+      ALTER TABLE "TimeBlock" ADD COLUMN IF NOT EXISTS "isSuperBlock" BOOLEAN NOT NULL DEFAULT false
+    `, 'TimeBlock.isSuperBlock');
+
     // ── User table ─────────────────────────────────────────────────────────
     await run(() => prisma.$executeRaw`
       CREATE TABLE IF NOT EXISTS "User" (
