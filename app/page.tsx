@@ -169,7 +169,7 @@ export default function DashboardPage() {
   if (isMobile) {
     return (
       <TodoDragProvider>
-        <MobileLayout selectedDate={selectedDate} onPrev={goToPrev} onNext={goToNext} currentUser={currentUser} onLogout={handleLogout} />
+        <MobileLayout selectedDate={selectedDate} onPrev={goToPrev} onNext={goToNext} onDateSelect={setSelectedDate} currentUser={currentUser} onLogout={handleLogout} />
       </TodoDragProvider>
     );
   }
@@ -181,6 +181,7 @@ export default function DashboardPage() {
         selectedDate={selectedDate}
         onPrev={goToPrev}
         onNext={goToNext}
+        onDateSelect={setSelectedDate}
         currentUser={currentUser}
         onLogout={handleLogout}
       />

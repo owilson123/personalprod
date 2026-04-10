@@ -1,13 +1,16 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import { format, isYesterday, parseISO } from 'date-fns';
 import { Clock } from '@/app/components/ui/Clock';
 import { useTheme } from '@/app/contexts/ThemeContext';
+import { DatePickerCalendar } from '@/app/components/ui/DatePickerCalendar';
 
 interface Props {
   selectedDate: string; // YYYY-MM-DD
   onPrev: () => void;
   onNext: () => void;
+  onDateSelect?: (date: string) => void;
   currentUser?: { name: string; isAdmin: boolean } | null;
   onLogout?: () => void;
 }
@@ -91,10 +94,12 @@ function ThemeToggle() {
   );
 }
 
-export function DashboardHeader({ selectedDate, onPrev, onNext, currentUser, onLogout }: Props) {
+export function DashboardHeader({ selectedDate, onPrev, onNext, onDateSelect, currentUser, onLogout }: Props) {
   const isToday = selectedDate === todayStr();
   const isFuture = selectedDate >= tomorrowStr();
   const label = dateLabel(selectedDate);
+  const [calOpen, setCalOpen] = useState(false);
+  const dateRef = useRef<HTMLButtonElement>(null);
 
   const btnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -148,7 +153,21 @@ export function DashboardHeader({ selectedDate, onPrev, onNext, currentUser, onL
             <Chevron dir="left" />
           </button>
 
-          <div className="flex items-center gap-1.5" style={{ minWidth: 110, justifyContent: 'center' }}>
+          <button
+            ref={dateRef}
+            onClick={() => setCalOpen(o => !o)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              minWidth: 110, justifyContent: 'center',
+              background: calOpen ? 'var(--bg-input)' : 'transparent',
+              border: `1px solid ${calOpen ? 'var(--border-hover)' : 'transparent'}`,
+              borderRadius: 8, padding: '3px 8px', cursor: 'pointer',
+              transition: 'background 0.15s, border-color 0.15s',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+            onMouseEnter={e => { if (!calOpen) { e.currentTarget.style.background = 'var(--bg-input)'; e.currentTarget.style.borderColor = 'var(--border-main)'; }}}
+            onMouseLeave={e => { if (!calOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}}
+          >
             <span style={{
               fontSize: 13, fontWeight: 600,
               color: isToday ? 'var(--text-today)' : 'var(--text-secondary)',
@@ -156,10 +175,21 @@ export function DashboardHeader({ selectedDate, onPrev, onNext, currentUser, onL
             }}>
               {label}
             </span>
-            {isToday && (
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-blue)', flexShrink: 0 }} />
-            )}
-          </div>
+            {isToday
+              ? <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-blue)', flexShrink: 0 }} />
+              : <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                  <path d="M1 3h8M3 1v2M7 1v2M1.5 4h7a.5.5 0 01.5.5v4a.5.5 0 01-.5.5h-7a.5.5 0 01-.5-.5v-4a.5.5 0 01.5-.5z" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+                </svg>
+            }
+          </button>
+          {calOpen && onDateSelect && (
+            <DatePickerCalendar
+              selectedDate={selectedDate}
+              onSelect={onDateSelect}
+              onClose={() => setCalOpen(false)}
+              anchorRef={dateRef}
+            />
+          )}
 
           <button
             style={{ ...btnBase, opacity: isFuture ? 0.3 : 1, cursor: isFuture ? 'default' : 'pointer' }}

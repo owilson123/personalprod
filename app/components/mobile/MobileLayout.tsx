@@ -8,6 +8,7 @@ import { HabitTracker } from '@/app/components/productivity/HabitTracker';
 import { NotesPanel } from '@/app/components/productivity/NotesPanel';
 import { FinancePanel } from '@/app/components/finance/FinancePanel';
 import { useTheme } from '@/app/contexts/ThemeContext';
+import { DatePickerCalendar } from '@/app/components/ui/DatePickerCalendar';
 
 type Tab = 'todo' | 'schedule' | 'habits' | 'finance';
 
@@ -15,6 +16,7 @@ interface Props {
   selectedDate: string;
   onPrev: () => void;
   onNext: () => void;
+  onDateSelect?: (date: string) => void;
   currentUser?: { name: string; isAdmin: boolean } | null;
   onLogout?: () => void;
 }
@@ -115,9 +117,11 @@ function dateLabel(dateStr: string) {
 
 // ─── Compact mobile header ──────────────────────────────────────────────────
 
-function MobileHeader({ selectedDate, onPrev, onNext, currentUser, onLogout }: Props) {
+function MobileHeader({ selectedDate, onPrev, onNext, onDateSelect, currentUser, onLogout }: Props) {
   const isToday = selectedDate === todayStr();
   const label = dateLabel(selectedDate);
+  const [calOpen, setCalOpen] = useState(false);
+  const dateRef = useRef<HTMLButtonElement>(null);
 
   return (
     <header style={{
@@ -161,7 +165,19 @@ function MobileHeader({ selectedDate, onPrev, onNext, currentUser, onLogout }: P
           </svg>
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 90, justifyContent: 'center' }}>
+        <button
+          ref={dateRef}
+          onClick={() => setCalOpen(o => !o)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            minWidth: 90, justifyContent: 'center',
+            background: calOpen ? 'var(--bg-input)' : 'transparent',
+            border: `1px solid ${calOpen ? 'var(--border-hover)' : 'transparent'}`,
+            borderRadius: 10, padding: '5px 10px', cursor: 'pointer',
+            WebkitTapHighlightColor: 'transparent',
+            transition: 'background 0.15s',
+          }}
+        >
           <span style={{
             fontSize: 14, fontWeight: 700,
             color: isToday ? 'var(--text-main)' : 'var(--text-secondary)',
@@ -169,10 +185,22 @@ function MobileHeader({ selectedDate, onPrev, onNext, currentUser, onLogout }: P
           }}>
             {label}
           </span>
-          {isToday && (
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-blue)', flexShrink: 0 }}/>
-          )}
-        </div>
+          {isToday
+            ? <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-blue)', flexShrink: 0 }}/>
+            : <svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                <path d="M1 3h8M3 1v2M7 1v2M1.5 4h7a.5.5 0 01.5.5v4a.5.5 0 01-.5.5h-7a.5.5 0 01-.5-.5v-4a.5.5 0 01.5-.5z" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+              </svg>
+          }
+        </button>
+        {calOpen && onDateSelect && (
+          <DatePickerCalendar
+            selectedDate={selectedDate}
+            onSelect={onDateSelect}
+            onClose={() => setCalOpen(false)}
+            anchorRef={dateRef}
+            direction="down"
+          />
+        )}
 
         <button
           onClick={onNext}
@@ -223,7 +251,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 // ─── Main layout ────────────────────────────────────────────────────────────
 
-export function MobileLayout({ selectedDate, onPrev, onNext, currentUser, onLogout }: Props) {
+export function MobileLayout({ selectedDate, onPrev, onNext, onDateSelect, currentUser, onLogout }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('todo');
   const [habitsSubTab, setHabitsSubTab] = useState<'habits' | 'notes'>('habits');
 
@@ -259,6 +287,7 @@ export function MobileLayout({ selectedDate, onPrev, onNext, currentUser, onLogo
         selectedDate={selectedDate}
         onPrev={onPrev}
         onNext={onNext}
+        onDateSelect={onDateSelect}
         currentUser={currentUser}
         onLogout={onLogout}
       />
