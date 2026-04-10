@@ -8,8 +8,6 @@ import { FinanceNewsFeed } from './FinanceNewsFeed';
 
 const MIN_PCT = 15;
 
-const dividerStyle = { height: '4px', background: '#1e1f2a', cursor: 'row-resize', flexShrink: 0 as const, transition: 'background 0.15s' };
-
 export function FinancePanel() {
   const [topPct,    setTopPct]    = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('finance.topPct')    || 55));
   const [marketTab, setMarketTab] = useState<'movers' | 'watchlist'>(() => (typeof window !== 'undefined' && localStorage.getItem('finance.marketTab') as 'movers' | 'watchlist') || 'movers');
@@ -65,7 +63,7 @@ export function FinancePanel() {
 
         {/* Tabbed top: Movers (default) + Watchlist */}
         <div className="overflow-hidden flex flex-col" style={{ height: `${topPct}%` }}>
-          <div style={{ display: 'flex', background: '#13141c', borderBottom: '1px solid #1e1f2a', flexShrink: 0 }}>
+          <div style={{ display: 'flex', background: 'var(--bg-tabbar)', borderBottom: '1px solid var(--border-subtle)', flexShrink: 0 }}>
             {(['movers', 'watchlist'] as const).map(tab => (
               <button
                 key={tab}
@@ -78,8 +76,8 @@ export function FinancePanel() {
                   textTransform: 'uppercase',
                   background: 'none',
                   border: 'none',
-                  borderBottom: marketTab === tab ? '2px solid #4f7df9' : '2px solid transparent',
-                  color: marketTab === tab ? '#4f7df9' : '#555770',
+                  borderBottom: marketTab === tab ? '2px solid var(--accent-blue)' : '2px solid transparent',
+                  color: marketTab === tab ? 'var(--accent-blue)' : 'var(--text-muted)',
                   cursor: 'pointer',
                   transition: 'color 0.15s, border-color 0.15s',
                   marginBottom: '-1px',
@@ -95,10 +93,10 @@ export function FinancePanel() {
         </div>
 
         <div
-          style={dividerStyle}
+          style={{ height: '4px', background: 'var(--border-subtle)', cursor: 'row-resize', flexShrink: 0, transition: 'background 0.15s' }}
           onMouseDown={onDividerDown}
-          onMouseEnter={e => (e.currentTarget.style.background = '#3a3b52')}
-          onMouseLeave={e => (e.currentTarget.style.background = '#1e1f2a')}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--border-hover)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'var(--border-subtle)')}
         />
 
         <div className="overflow-y-auto scrollbar-thin" style={{ height: `${newsPct}%` }}>

@@ -158,15 +158,15 @@ export function TimeBlockingPanel({ date }: Props) {
             <div key={h} className="absolute left-0 right-0 flex pointer-events-none"
               style={{ top: (h - START_HOUR) * PX_PER_HOUR, height: PX_PER_HOUR }}>
               <div className="flex items-start justify-end pt-1 pr-2 shrink-0" style={{ width: LABEL_W }}>
-                <span style={{ fontSize: 11, color: '#52536a', fontWeight: 500 }}>{formatHour(h)}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>{formatHour(h)}</span>
               </div>
-              <div className="flex-1 border-t" style={{ borderColor: '#1e1f2a' }} />
+              <div className="flex-1 border-t" style={{ borderColor: 'var(--border-subtle)' }} />
             </div>
           ))}
 
           {HOURS.map(h => (
             <div key={`hh-${h}`} className="absolute pointer-events-none"
-              style={{ top: (h - START_HOUR) * PX_PER_HOUR + PX_PER_HOUR / 2, left: LABEL_W, right: 0, borderTop: '1px dashed #252637' }} />
+              style={{ top: (h - START_HOUR) * PX_PER_HOUR + PX_PER_HOUR / 2, left: LABEL_W, right: 0, borderTop: '1px dashed var(--border-subtle)' }} />
           ))}
 
           <div className="absolute inset-0 cursor-pointer" style={{ left: LABEL_W, zIndex: 1 }} />
@@ -174,8 +174,8 @@ export function TimeBlockingPanel({ date }: Props) {
           {mounted && now && date === format(now, 'yyyy-MM-dd') && (
             <div className="absolute right-0 flex items-center pointer-events-none z-10"
               style={{ top: nowPx, left: LABEL_W - 4 }}>
-              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#ff4757', marginLeft: -3 }} />
-              <div className="flex-1" style={{ borderTop: '2px solid #ff4757' }} />
+              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: 'var(--accent-red)', marginLeft: -3 }} />
+              <div className="flex-1" style={{ borderTop: '2px solid var(--accent-red)' }} />
             </div>
           )}
 
@@ -212,14 +212,14 @@ export function TimeBlockingPanel({ date }: Props) {
                 <div className="relative h-full flex flex-col justify-center px-3 py-1.5">
                   {isShort ? (
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold truncate text-white" style={{ fontSize: 11 }}>{block.task}</span>
+                      <span className="font-semibold truncate" style={{ fontSize: 11, color: 'var(--text-main)' }}>{block.task}</span>
                       <span style={{ fontSize: 10, color: block.color, opacity: .9, whiteSpace: 'nowrap' }}>
                         {minsToLabel(block.startMinute)}
                       </span>
                     </div>
                   ) : (
                     <>
-                      <p className="font-semibold text-white truncate leading-tight" style={{ fontSize: 12 }}>{block.task}</p>
+                      <p className="font-semibold truncate leading-tight" style={{ fontSize: 12, color: 'var(--text-main)' }}>{block.task}</p>
                       <p style={{ fontSize: 10, color: block.color, opacity: .85, marginTop: 2 }}>
                         {minsToLabel(block.startMinute)} – {minsToLabel(block.endMinute)}
                       </p>

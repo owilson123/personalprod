@@ -1,18 +1,52 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* ─── Dark theme (default) ──────────────────────────────────────────────── */
 :root {
   --bg-dark: #0f1117;
   --bg-card: #1a1b23;
   --bg-input: #242530;
+  --bg-header: #12131a;
+  --bg-tabbar: #13141c;
   --text-main: #f0f0f5;
   --text-secondary: #8b8ca0;
   --text-muted: #52536a;
+  --text-hover: #c8c8d4;
+  --text-today: #e8e8f0;
   --border-main: #2a2b3d;
   --border-subtle: #1e1f2a;
+  --border-hover: #3a3b52;
   --accent-blue: #4f7df9;
+  --accent-blue-deep: #3b6ae8;
   --accent-green: #00d084;
   --accent-red: #ff4757;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --scrollbar-thumb: #2a2b3d;
+  --scrollbar-thumb-hover: #3a3b4d;
+}
+
+/* ─── Light theme ────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-dark: #eef0f8;
+  --bg-card: #ffffff;
+  --bg-input: #f4f5fb;
+  --bg-header: #ffffff;
+  --bg-tabbar: #f8f9fd;
+  --text-main: #1a1c2e;
+  --text-secondary: #565878;
+  --text-muted: #9ea0bc;
+  --text-hover: #1a1c2e;
+  --text-today: #1a1c2e;
+  --border-main: #e0e3f0;
+  --border-subtle: #eaecf6;
+  --border-hover: #c0c5de;
+  --accent-blue: #3b6ae8;
+  --accent-blue-deep: #2d57d4;
+  --accent-green: #00a86e;
+  --accent-red: #e53845;
+  --shadow: rgba(25, 35, 80, 0.08);
+  --scrollbar-thumb: #dde0f0;
+  --scrollbar-thumb-hover: #c4c8e0;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -22,6 +56,7 @@ body {
   font-family: "Inter", system-ui, sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-main);
+  transition: background-color 0.25s, color 0.25s;
 }
 
 input, textarea, select {
@@ -32,11 +67,18 @@ input, textarea, select {
   outline: none;
   border-radius: 8px;
   padding: 0.5rem;
+  transition: background-color 0.25s, border-color 0.25s, color 0.25s;
 }
 
 input:focus, textarea:focus, select:focus {
   border-color: var(--accent-blue);
   box-shadow: 0 0 0 3px rgba(79, 125, 249, 0.15);
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] textarea:focus,
+[data-theme="light"] select:focus {
+  box-shadow: 0 0 0 3px rgba(59, 106, 232, 0.12);
 }
 
 a { text-decoration: none; }
@@ -45,8 +87,8 @@ a { text-decoration: none; }
 /* Scrollbar */
 .scrollbar-thin::-webkit-scrollbar { width: 5px; }
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-.scrollbar-thin::-webkit-scrollbar-thumb { background: #2a2b3d; border-radius: 3px; }
-.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #3a3b4d; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
 /* Animations */
 @keyframes fadeIn {

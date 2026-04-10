@@ -134,7 +134,7 @@ export function TodoList({ date }: Props) {
         <div className="flex-1 overflow-y-auto space-y-1 scrollbar-thin">
           {todos.length === 0 && (
             <div className="flex items-center justify-center h-full">
-              <p style={{ color: '#52536a', fontSize: 13 }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
                 {isPast ? 'No tasks for this day.' : 'No tasks yet — add one below.'}
               </p>
             </div>
@@ -142,19 +142,20 @@ export function TodoList({ date }: Props) {
           {[...todos].sort((a, b) => Number(a.done) - Number(b.done)).map(t => (
             <div key={t.id}
               className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${t.done ? 'opacity-60' : ''}`}
-              style={{ background: '#1a1b23' }}>
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
               {editId === t.id ? (
                 <input autoFocus value={editTxt}
                   onChange={e => setEditTxt(e.target.value)}
                   onBlur={() => save(t.id)}
                   onKeyDown={e => { if (e.key === 'Enter') save(t.id); if (e.key === 'Escape') setEditId(null); }}
-                  className="flex-1 min-w-0 bg-transparent text-sm text-white focus:outline-none border-b border-blue-500" />
+                  className="flex-1 min-w-0 bg-transparent text-sm focus:outline-none border-b"
+                  style={{ color: 'var(--text-main)', borderColor: 'var(--accent-blue)' }} />
               ) : (
                 <span
                   onDoubleClick={() => { setEditId(t.id); setEditTxt(t.text); }}
                   title="Double-click to edit"
-                  className={`flex-1 min-w-0 text-sm truncate select-none cursor-pointer ${t.done ? 'line-through' : 'text-white'}`}
-                  style={t.done ? { color: '#52536a' } : {}}>
+                  className="flex-1 min-w-0 text-sm truncate select-none cursor-pointer"
+                  style={{ color: t.done ? 'var(--text-muted)' : 'var(--text-main)', textDecoration: t.done ? 'line-through' : 'none' }}>
                   {t.text}
                 </span>
               )}
@@ -164,32 +165,32 @@ export function TodoList({ date }: Props) {
                 style={{
                   width: 22, height: 22, flexShrink: 0,
                   borderRadius: 6,
-                  border: t.done ? 'none' : '1px solid #2a2b3d',
-                  background: t.done ? '#00d084' : 'transparent',
+                  border: t.done ? 'none' : '1px solid var(--border-main)',
+                  background: t.done ? 'var(--accent-green)' : 'transparent',
                   cursor: 'pointer',
                   boxShadow: t.done ? '0 0 10px rgba(0,208,132,0.3)' : 'none',
                 }}
               />
               <button onClick={() => del(t.id)}
                 className="flex items-center justify-center text-lg leading-none opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                style={{ width: 20, height: 20, color: '#52536a' }}
-                onMouseOver={e => (e.currentTarget.style.color = '#ff4757')}
-                onMouseOut={e => (e.currentTarget.style.color = '#52536a')}>
+                style={{ width: 20, height: 20, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                onMouseOver={e => (e.currentTarget.style.color = 'var(--accent-red)')}
+                onMouseOut={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
                 ×
               </button>
             </div>
           ))}
         </div>
         {!isPast && (
-          <div className="flex gap-2 mt-2 pt-2" style={{ borderTop: '1px solid #2a2b3d' }}>
+          <div className="flex gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--border-main)' }}>
             <input value={newTxt} onChange={e => setNewTxt(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && add()}
               placeholder="Add a new task…"
-              className="flex-1 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-600 focus:outline-none border transition-all"
-              style={{ background: '#242530', borderColor: '#2a2b3d' }} />
+              className="flex-1 rounded-lg px-3 py-1.5 text-sm focus:outline-none border transition-all"
+              style={{ background: 'var(--bg-input)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }} />
             <button onClick={add} disabled={!newTxt.trim()}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-40 shrink-0 transition-all"
-              style={{ background: 'linear-gradient(135deg, #4f7df9, #3b6ae8)' }}>
+              style={{ background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-blue-deep))' }}>
               Add
             </button>
           </div>

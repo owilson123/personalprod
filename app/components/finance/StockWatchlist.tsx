@@ -116,9 +116,9 @@ export function StockWatchlist() {
   const addButton = (
     <button onClick={() => setShowAdd(true)}
       className="flex items-center justify-center w-6 h-6 rounded-md transition-all"
-      style={{ background: '#242530', color: '#8b8ca0', fontSize: 16 }}
-      onMouseOver={e => { e.currentTarget.style.background = '#2a2b3d'; e.currentTarget.style.color = '#f0f0f5'; }}
-      onMouseOut={e => { e.currentTarget.style.background = '#242530'; e.currentTarget.style.color = '#8b8ca0'; }}>
+      style={{ background: 'var(--bg-input)', color: 'var(--text-secondary)', fontSize: 16, border: '1px solid var(--border-main)', cursor: 'pointer' }}
+      onMouseOver={e => { e.currentTarget.style.background = 'var(--border-main)'; e.currentTarget.style.color = 'var(--text-main)'; }}
+      onMouseOut={e => { e.currentTarget.style.background = 'var(--bg-input)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
       +
     </button>
   );
@@ -129,24 +129,25 @@ export function StockWatchlist() {
       <div className="flex-1 overflow-y-auto scrollbar-thin px-3 pb-2 space-y-1">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2.5" style={{ background: '#1a1b23' }}>
-              <div className="h-3 w-12 rounded animate-pulse" style={{ background: '#242530' }} />
+            <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2.5"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+              <div className="h-3 w-12 rounded animate-pulse" style={{ background: 'var(--bg-input)' }} />
               <div className="flex-1" />
-              <div className="h-3 w-16 rounded animate-pulse" style={{ background: '#242530' }} />
+              <div className="h-3 w-16 rounded animate-pulse" style={{ background: 'var(--bg-input)' }} />
             </div>
           ))
         ) : stocks.map(stock => {
           const isUp = (stock.changePercent ?? 0) >= 0;
-          const color = isUp ? '#00d084' : '#ff4757';
+          const color = isUp ? 'var(--accent-green)' : 'var(--accent-red)';
           return (
             <div key={stock.id}
               className="flex items-center gap-2 rounded-lg px-2.5 py-1 group transition-all"
-              style={{ background: '#1a1b23' }}
-              onMouseOver={e => (e.currentTarget.style.background = '#1e1f2a')}
-              onMouseOut={e => (e.currentTarget.style.background = '#1a1b23')}>
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
+              onMouseOver={e => (e.currentTarget.style.background = 'var(--bg-input)')}
+              onMouseOut={e => (e.currentTarget.style.background = 'var(--bg-card)')}>
               <div className="flex flex-col min-w-0" style={{ width: 48 }}>
-                <span className="font-bold text-white truncate" style={{ fontSize: 11 }}>{stock.symbol}</span>
-                <span className="truncate" style={{ fontSize: 8, color: '#52536a' }}>{stock.name}</span>
+                <span className="font-bold truncate" style={{ fontSize: 11, color: 'var(--text-main)' }}>{stock.symbol}</span>
+                <span className="truncate" style={{ fontSize: 8, color: 'var(--text-muted)' }}>{stock.name}</span>
               </div>
 
               <div className="flex-shrink-0">
@@ -159,7 +160,7 @@ export function StockWatchlist() {
               </div>
 
               <div className="flex flex-col items-end ml-auto min-w-0">
-                <span className="font-semibold tabular-nums text-white" style={{ fontSize: 11 }}>
+                <span className="font-semibold tabular-nums" style={{ fontSize: 11, color: 'var(--text-main)' }}>
                   ${stock.price?.toFixed(2) ?? '—'}
                 </span>
                 <span className="tabular-nums font-semibold" style={{
@@ -171,9 +172,9 @@ export function StockWatchlist() {
 
               <button onClick={() => removeStock(stock.id)}
                 className="flex items-center justify-center text-sm leading-none opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                style={{ width: 16, height: 16, color: '#52536a' }}
-                onMouseOver={e => (e.currentTarget.style.color = '#ff4757')}
-                onMouseOut={e => (e.currentTarget.style.color = '#52536a')}>
+                style={{ width: 16, height: 16, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                onMouseOver={e => (e.currentTarget.style.color = 'var(--accent-red)')}
+                onMouseOut={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
                 ×
               </button>
             </div>

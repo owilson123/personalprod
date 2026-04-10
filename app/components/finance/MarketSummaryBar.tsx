@@ -33,11 +33,11 @@ export function MarketSummaryBar() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-6 px-4 py-3" style={{ background: 'linear-gradient(135deg, #12131a, #161722)' }}>
+      <div className="flex items-center gap-6 px-4 py-3" style={{ background: 'var(--bg-header)', borderBottom: '1px solid var(--border-subtle)' }}>
         {[1, 2, 3].map(i => (
           <div key={i} className="flex items-center gap-3">
-            <div className="h-3 w-16 rounded animate-pulse" style={{ background: '#242530' }} />
-            <div className="h-4 w-14 rounded animate-pulse" style={{ background: '#242530' }} />
+            <div className="h-3 w-16 rounded animate-pulse" style={{ background: 'var(--bg-input)' }} />
+            <div className="h-4 w-14 rounded animate-pulse" style={{ background: 'var(--bg-input)' }} />
           </div>
         ))}
       </div>
@@ -48,15 +48,15 @@ export function MarketSummaryBar() {
 
   return (
     <div className="flex items-center gap-1 px-3 py-2.5 shrink-0 overflow-x-auto"
-      style={{ background: 'linear-gradient(135deg, #12131a, #161722)', borderBottom: '1px solid #1e1f2a' }}>
+      style={{ background: 'var(--bg-header)', borderBottom: '1px solid var(--border-subtle)' }}>
       {indices.map((idx, i) => {
         const isUp = idx.changePercent >= 0;
-        const color = isUp ? '#00d084' : '#ff4757';
+        const color = isUp ? 'var(--accent-green)' : 'var(--accent-red)';
         return (
           <div key={idx.symbol} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ minWidth: 0 }}>
-            {i > 0 && <div className="w-px h-6 mr-1" style={{ background: '#2a2b3d' }} />}
-            <span style={{ fontSize: 11, color: '#8b8ca0', fontWeight: 500 }}>{idx.name}</span>
-            <span className="font-semibold tabular-nums" style={{ fontSize: 12, color: '#f0f0f5' }}>
+            {i > 0 && <div className="w-px h-6 mr-1" style={{ background: 'var(--border-main)' }} />}
+            <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 500 }}>{idx.name}</span>
+            <span className="font-semibold tabular-nums" style={{ fontSize: 12, color: 'var(--text-main)' }}>
               ${idx.price?.toFixed(2)}
             </span>
             <span className="px-1.5 py-0.5 rounded font-semibold tabular-nums" style={{

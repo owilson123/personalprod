@@ -58,18 +58,20 @@ export function AddSymbolModal({ onClose, onAdded }: AddSymbolModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)' }}
+      style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}
       onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         className="rounded-2xl p-6 w-full max-w-sm shadow-2xl"
-        style={{ background: '#1a1b23', border: '1px solid #2a2b3d' }}
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-main)' }}
         onMouseDown={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-white" style={{ fontSize: 16 }}>Add to Watchlist</h3>
-          <button onClick={onClose} style={{ color: '#8b8ca0', fontSize: 22, lineHeight: 1 }}
-            className="hover:text-white transition-colors">×</button>
+          <h3 className="font-semibold" style={{ fontSize: 16, color: 'var(--text-main)' }}>Add to Watchlist</h3>
+          <button onClick={onClose}
+            style={{ color: 'var(--text-secondary)', fontSize: 22, lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}
+            onMouseOver={e => (e.currentTarget.style.color = 'var(--text-main)')}
+            onMouseOut={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>×</button>
         </div>
 
         <div className="space-y-3">
@@ -79,20 +81,22 @@ export function AddSymbolModal({ onClose, onAdded }: AddSymbolModalProps) {
             onChange={e => { setSymbol(e.target.value.toUpperCase()); setError(''); }}
             onKeyDown={e => e.key === 'Enter' && submit()}
             placeholder="Enter ticker symbol (e.g. AAPL)"
-            className="w-full rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none border transition-all uppercase"
-            style={{ background: '#242530', borderColor: '#2a2b3d' }}
+            className="w-full rounded-lg px-4 py-2.5 text-sm focus:outline-none border transition-all uppercase"
+            style={{ background: 'var(--bg-input)', borderColor: 'var(--border-main)', color: 'var(--text-main)' }}
           />
-          {error && <p style={{ color: '#ff4757', fontSize: 12 }}>{error}</p>}
+          {error && <p style={{ color: 'var(--accent-red)', fontSize: 12 }}>{error}</p>}
         </div>
 
         <div className="flex gap-3 mt-5">
           <button onClick={onClose} className="ml-auto px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            style={{ color: '#8b8ca0' }}>
+            style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}
+            onMouseOver={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'var(--bg-input)'; }}
+            onMouseOut={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'none'; }}>
             Cancel
           </button>
           <button onClick={submit} disabled={!symbol.trim() || loading}
             className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, #4f7df9, #3b6ae8)' }}>
+            style={{ background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-blue-deep))' }}>
             {loading ? 'Adding…' : 'Add'}
           </button>
         </div>

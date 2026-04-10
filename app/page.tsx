@@ -116,16 +116,16 @@ export default function DashboardPage() {
   const divider = (onDown: (e: React.MouseEvent) => void, axis: 'col' | 'row') => ({
     style: {
       [axis === 'col' ? 'width' : 'height']: '4px',
-      background: '#1e1f2a', cursor: `${axis}-resize`, flexShrink: 0 as const,
+      background: 'var(--border-subtle)', cursor: `${axis}-resize`, flexShrink: 0 as const,
       transition: 'background 0.15s',
     } as React.CSSProperties,
     onMouseDown: onDown,
-    onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = '#3a3b52'),
-    onMouseLeave: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = '#1e1f2a'),
+    onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = 'var(--border-hover)'),
+    onMouseLeave: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = 'var(--border-subtle)'),
   });
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#0f1117' }}>
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: 'var(--bg-dark)' }}>
       <DashboardHeader
         selectedDate={selectedDate}
         onPrev={goToPrev}
@@ -151,7 +151,7 @@ export default function DashboardPage() {
           {/* Tabbed bottom: Habits (default) + Notes */}
           <div className="overflow-hidden flex flex-col" style={{ height: `${bottomHeight}%` }}>
             {/* Tab bar */}
-            <div style={{ display: 'flex', background: '#13141c', borderBottom: '1px solid #1e1f2a', flexShrink: 0 }}>
+            <div style={{ display: 'flex', background: 'var(--bg-tabbar)', borderBottom: '1px solid var(--border-subtle)', flexShrink: 0 }}>
               {(['habits', 'notes'] as const).map(tab => (
                 <button
                   key={tab}
@@ -164,8 +164,8 @@ export default function DashboardPage() {
                     textTransform: 'uppercase',
                     background: 'none',
                     border: 'none',
-                    borderBottom: bottomTab === tab ? '2px solid #4f7df9' : '2px solid transparent',
-                    color: bottomTab === tab ? '#4f7df9' : '#555770',
+                    borderBottom: bottomTab === tab ? '2px solid var(--accent-blue)' : '2px solid transparent',
+                    color: bottomTab === tab ? 'var(--accent-blue)' : 'var(--text-muted)',
                     cursor: 'pointer',
                     transition: 'color 0.15s, border-color 0.15s',
                     marginBottom: '-1px',
