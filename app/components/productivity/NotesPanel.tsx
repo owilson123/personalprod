@@ -78,10 +78,11 @@ export function NotesPanel({ date }: Props) {
           onChange={e => setNotes(e.target.value)}
           readOnly={isPast}
           placeholder={isPast ? 'No notes for this day.' : 'Start writing… your notes auto-save.'}
-          className="w-full h-full rounded-xl p-4 text-sm text-white resize-none focus:outline-none transition-all leading-relaxed"
+          className="w-full h-full rounded-xl p-4 text-sm resize-none focus:outline-none transition-all leading-relaxed"
           style={{
-            background: '#1a1b23',
-            border: '1px solid #2a2b3d',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-main)',
+            color: 'var(--text-main)',
             fontFamily: 'inherit',
             opacity: isPast && !notes ? 0.5 : 1,
             cursor: isPast ? 'default' : 'text',

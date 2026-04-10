@@ -42,7 +42,9 @@ export function MarketMovers() {
       className="px-3 py-1 rounded-md text-xs font-semibold transition-all"
       style={{
         background: tab === key ? (key === 'gainers' ? 'rgba(0,208,132,0.12)' : 'rgba(255,71,87,0.12)') : 'transparent',
-        color: tab === key ? (key === 'gainers' ? '#00d084' : '#ff4757') : '#52536a',
+        color: tab === key ? (key === 'gainers' ? 'var(--accent-green)' : 'var(--accent-red)') : 'var(--text-muted)',
+        border: 'none',
+        cursor: 'pointer',
       }}
     >
       {label}
@@ -60,25 +62,26 @@ export function MarketMovers() {
       <div className="px-3 pb-2 space-y-1">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2" style={{ background: '#1a1b23' }}>
-              <div className="h-3 w-10 rounded animate-pulse" style={{ background: '#242530' }} />
+            <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+              <div className="h-3 w-10 rounded animate-pulse" style={{ background: 'var(--bg-input)' }} />
               <div className="flex-1" />
-              <div className="h-3 w-12 rounded animate-pulse" style={{ background: '#242530' }} />
+              <div className="h-3 w-12 rounded animate-pulse" style={{ background: 'var(--bg-input)' }} />
             </div>
           ))
         ) : items.length === 0 ? (
-          <p style={{ color: '#52536a', fontSize: 12, textAlign: 'center', padding: 12 }}>No data available</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', padding: 12 }}>No data available</p>
         ) : items.map(stock => {
           const isUp = stock.changePercent >= 0;
-          const color = isUp ? '#00d084' : '#ff4757';
+          const color = isUp ? 'var(--accent-green)' : 'var(--accent-red)';
           return (
             <div key={stock.symbol}
               className="flex items-center gap-2 rounded-lg px-3 py-2 transition-all"
-              style={{ background: '#1a1b23' }}
-              onMouseOver={e => (e.currentTarget.style.background = '#1e1f2a')}
-              onMouseOut={e => (e.currentTarget.style.background = '#1a1b23')}>
-              <span className="font-bold text-white" style={{ fontSize: 12, width: 50 }}>{stock.symbol}</span>
-              <span className="tabular-nums" style={{ fontSize: 11, color: '#8b8ca0' }}>
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
+              onMouseOver={e => (e.currentTarget.style.background = 'var(--bg-input)')}
+              onMouseOut={e => (e.currentTarget.style.background = 'var(--bg-card)')}>
+              <span className="font-bold" style={{ fontSize: 12, width: 50, color: 'var(--text-main)' }}>{stock.symbol}</span>
+              <span className="tabular-nums" style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
                 ${stock.price?.toFixed(2)}
               </span>
               <span className="ml-auto px-2 py-0.5 rounded font-semibold tabular-nums" style={{

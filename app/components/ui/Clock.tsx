@@ -11,6 +11,6 @@ export function Clock() {
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, []);
-  if (!txt) return <div className="h-4 w-16 rounded animate-pulse" style={{ background: '#1a1b23' }} />;
-  return <span className="tabular-nums" style={{ fontSize: 11, color: '#52536a', letterSpacing: '0.03em' }}>{txt}</span>;
+  if (!txt) return <div className="h-4 w-16 rounded animate-pulse" style={{ background: 'var(--bg-card)' }} />;
+  return <span className="tabular-nums" style={{ fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.03em' }}>{txt}</span>;
 }

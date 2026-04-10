@@ -36,22 +36,22 @@ export function FinanceNewsFeed() {
           <div className="space-y-2.5">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="space-y-1.5">
-                <div className="h-3 rounded animate-pulse" style={{ background: '#242530', width: `${60 + (i % 4) * 8}%` }} />
-                <div className="h-3 rounded animate-pulse w-2/5" style={{ background: '#242530' }} />
+                <div className="h-3 rounded animate-pulse" style={{ background: 'var(--bg-input)', width: `${60 + (i % 4) * 8}%` }} />
+                <div className="h-3 rounded animate-pulse w-2/5" style={{ background: 'var(--bg-input)' }} />
               </div>
             ))}
           </div>
         ) : news.length === 0 ? (
-          <p style={{ color: '#52536a', fontSize: 12, textAlign: 'center', padding: 12 }}>No news available</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', padding: 12 }}>No news available</p>
         ) : (
           <div>
             {news.slice(0, 10).map((item, i) => (
               <div key={i}>
                 <a href={item.url} target="_blank" rel="noopener noreferrer"
-                  className="block px-3 py-2 rounded-lg leading-snug transition-all no-underline group"
-                  style={{ fontSize: 12, color: '#c8c8d4' }}
+                  className="block px-3 py-2 rounded-lg leading-snug transition-all no-underline"
+                  style={{ fontSize: 12, color: 'var(--text-hover)' }}
                   onMouseOver={e => {
-                    e.currentTarget.style.background = '#1e1f2a';
+                    e.currentTarget.style.background = 'var(--bg-input)';
                     e.currentTarget.style.paddingLeft = '14px';
                   }}
                   onMouseOut={e => {
@@ -61,7 +61,7 @@ export function FinanceNewsFeed() {
                   {item.title}
                 </a>
                 {i < Math.min(news.length, 10) - 1 && (
-                  <div style={{ height: 1, background: '#1e1f2a', marginLeft: 12, marginRight: 12 }} />
+                  <div style={{ height: 1, background: 'var(--border-subtle)', marginLeft: 12, marginRight: 12 }} />
                 )}
               </div>
             ))}
