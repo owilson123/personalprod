@@ -122,3 +122,12 @@ a { text-decoration: none; }
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
+
+/* ─── Mobile safety net ──────────────────────────────────────────────────────
+   CSS fallback: if JS hydration briefly shows the desktop layout on a narrow
+   screen, hide it immediately so there's no flash of the wrong layout.      */
+@media (max-width: 767px) {
+  .desktop-layout-root {
+    display: none !important;
+  }
+}
