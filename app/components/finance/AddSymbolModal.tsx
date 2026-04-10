@@ -21,16 +21,17 @@ export function AddSymbolModal({ onClose, onAdded }: AddSymbolModalProps) {
     setError('');
 
     try {
-      // Validate by fetching quote
+      // Validate symbol against Finnhub — skip if API unavailable
       const quoteRes = await fetch(`/api/finance/quote?symbols=${symbol.trim().toUpperCase()}`);
       if (quoteRes.ok) {
         const quotes = await quoteRes.json();
-        if (!quotes.length || !quotes[0].price) {
-          setError('Symbol not found');
+        if (Array.isArray(quotes) && quotes.length === 0) {
+          setError('Symbol not found — check the ticker and try again');
           setLoading(false);
           return;
         }
       }
+      // If quoteRes not ok (API key missing, rate limit, etc.) we still allow the add
 
       const res = await fetch('/api/watchlist', {
         method: 'POST',
@@ -39,7 +40,13 @@ export function AddSymbolModal({ onClose, onAdded }: AddSymbolModalProps) {
       });
 
       if (res.status === 409) {
-        setError('Already in watchlist');
+        setError('Already in your watchlist');
+        setLoading(false);
+        return;
+      }
+
+      if (res.status === 401) {
+        setError('Please sign in to add symbols');
         setLoading(false);
         return;
       }
@@ -47,10 +54,11 @@ export function AddSymbolModal({ onClose, onAdded }: AddSymbolModalProps) {
       if (res.ok) {
         onAdded();
       } else {
-        setError('Failed to add');
+        const body = await res.json().catch(() => ({}));
+        setError((body as { error?: string }).error || 'Failed to add symbol');
       }
     } catch {
-      setError('Network error');
+      setError('Network error — please try again');
     }
     setLoading(false);
   };
