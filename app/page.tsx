@@ -157,7 +157,7 @@ export default function DashboardPage() {
 
   // Show nothing while checking auth (avoids flash)
   if (!authChecked) {
-    return <div style={{ background: '#0f1117', height: '100vh' }} />;
+    return <div style={{ background: 'var(--bg-dark)', height: '100dvh' }} />;
   }
 
   // Show login modal when not authenticated — do NOT mount dashboard panels
