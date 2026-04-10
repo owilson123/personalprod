@@ -285,6 +285,7 @@ export function TimeBlockingPanel({ date }: Props) {
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto scrollbar-thin"
+        style={{ touchAction: 'pan-y' }}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}

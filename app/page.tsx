@@ -169,7 +169,7 @@ export default function DashboardPage() {
   if (isMobile) {
     return (
       <TodoDragProvider>
-        <MobileLayout selectedDate={selectedDate} onPrev={goToPrev} onNext={goToNext} />
+        <MobileLayout selectedDate={selectedDate} onPrev={goToPrev} onNext={goToNext} currentUser={currentUser} onLogout={handleLogout} />
       </TodoDragProvider>
     );
   }
