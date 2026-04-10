@@ -18,6 +18,8 @@ export function TodoList({ date }: Props) {
   const [ready, setReady] = useState(false);
   const [useLocal, setUseLocal] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [dragOverPos, setDragOverPos] = useState<'above' | 'below'>('below');
 
   const { setDragTodo } = useTodoDrag();
 
@@ -129,7 +131,38 @@ export function TodoList({ date }: Props) {
     setEditId(null);
   };
 
+  const handleDrop = (e: React.DragEvent, targetId: string, targetDone: boolean) => {
+    if (!draggingId || targetDone) return;
+    if (!e.dataTransfer.types.includes('application/todo-json')) return;
+
+    const sorted = [...todos].sort((a, b) => Number(a.done) - Number(b.done));
+    const fromIdx = sorted.findIndex(x => x.id === draggingId);
+    const toIdx = sorted.findIndex(x => x.id === targetId);
+    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(fromIdx, 1);
+    const insertAt = dragOverPos === 'above' ? toIdx : toIdx + 1;
+    reordered.splice(insertAt > fromIdx ? insertAt - 1 : insertAt, 0, moved);
+
+    setTodos(reordered);
+    setDragOverId(null);
+
+    if (!useLocal) {
+      reordered.forEach((item, idx) => {
+        if (!item.done) {
+          fetch(`/api/todos/${item.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ position: idx }),
+          }).catch(() => {});
+        }
+      });
+    }
+  };
+
   const isPast = date < today;
+  const sorted = [...todos].sort((a, b) => Number(a.done) - Number(b.done));
 
   return (
     <div className="flex flex-col h-full">
@@ -143,96 +176,118 @@ export function TodoList({ date }: Props) {
               </p>
             </div>
           )}
-          {[...todos].sort((a, b) => Number(a.done) - Number(b.done)).map(t => {
+          {sorted.map(t => {
             const canDrag = !t.done && editId !== t.id;
+            const isOver = draggingId && dragOverId === t.id && draggingId !== t.id;
+            const showAbove = isOver && dragOverPos === 'above';
+            const showBelow = isOver && dragOverPos === 'below';
+
             return (
-              <div
-                key={t.id}
-                draggable={canDrag}
-                onDragStart={e => {
-                  setDraggingId(t.id);
-                  setDragTodo({ id: t.id, text: t.text });
-                  e.dataTransfer.setData('application/todo-json', JSON.stringify({ id: t.id, text: t.text }));
-                  e.dataTransfer.effectAllowed = 'copy';
-                  const ghost = document.createElement('div');
-                  ghost.textContent = t.text;
-                  ghost.style.cssText = [
-                    'position:fixed', 'top:-200px', 'left:0',
-                    'background:#1e1f2e', 'color:#fff', 'font-size:13px', 'font-weight:600',
-                    'font-family:Inter,system-ui,sans-serif',
-                    'padding:8px 16px', 'border-radius:10px',
-                    'border:1px solid #4f7df9',
-                    'box-shadow:0 8px 24px rgba(79,125,249,0.4)',
-                    'pointer-events:none', 'white-space:nowrap',
-                    'max-width:240px', 'overflow:hidden', 'text-overflow:ellipsis',
-                  ].join(';');
-                  document.body.appendChild(ghost);
-                  e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
-                  requestAnimationFrame(() => {
-                    if (document.body.contains(ghost)) document.body.removeChild(ghost);
-                  });
-                }}
-                onDragEnd={() => {
-                  setDraggingId(null);
-                  setDragTodo(null);
-                }}
-                className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${t.done ? 'opacity-60' : ''} ${draggingId === t.id ? 'opacity-40 scale-95' : ''}`}
-                style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)',
-                  cursor: canDrag ? 'grab' : 'default',
-                }}
-              >
-                {canDrag && (
-                  <div
-                    className="opacity-0 group-hover:opacity-30 transition-opacity shrink-0"
-                    style={{ color: 'var(--text-secondary)', lineHeight: 0 }}
-                  >
-                    <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
-                      <circle cx="3" cy="3"  r="1.3"/>
-                      <circle cx="7" cy="3"  r="1.3"/>
-                      <circle cx="3" cy="7"  r="1.3"/>
-                      <circle cx="7" cy="7"  r="1.3"/>
-                      <circle cx="3" cy="11" r="1.3"/>
-                      <circle cx="7" cy="11" r="1.3"/>
-                    </svg>
-                  </div>
+              <div key={t.id}>
+                {showAbove && (
+                  <div style={{ height: 2, background: 'var(--accent-blue)', borderRadius: 2, margin: '1px 8px', opacity: 0.8 }} />
                 )}
-                {editId === t.id ? (
-                  <input autoFocus value={editTxt}
-                    onChange={e => setEditTxt(e.target.value)}
-                    onBlur={() => save(t.id)}
-                    onKeyDown={e => { if (e.key === 'Enter') save(t.id); if (e.key === 'Escape') setEditId(null); }}
-                    className="flex-1 min-w-0 bg-transparent text-sm focus:outline-none border-b"
-                    style={{ color: 'var(--text-main)', borderColor: 'var(--accent-blue)' }} />
-                ) : (
-                  <span
-                    onDoubleClick={() => { setEditId(t.id); setEditTxt(t.text); }}
-                    title={canDrag ? 'Drag to time block · Double-click to edit' : 'Double-click to edit'}
-                    className="flex-1 min-w-0 text-sm truncate select-none"
-                    style={{ color: t.done ? 'var(--text-muted)' : 'var(--text-main)', textDecoration: t.done ? 'line-through' : 'none' }}>
-                    {t.text}
-                  </span>
-                )}
-                <button
-                  onClick={() => toggle(t.id)}
-                  className="transition-all"
-                  style={{
-                    width: 22, height: 22, flexShrink: 0,
-                    borderRadius: 6,
-                    border: t.done ? 'none' : '1px solid var(--border-main)',
-                    background: t.done ? 'var(--accent-green)' : 'transparent',
-                    cursor: 'pointer',
-                    boxShadow: t.done ? '0 0 10px rgba(0,208,132,0.3)' : 'none',
+                <div
+                  draggable={canDrag}
+                  onDragStart={e => {
+                    setDraggingId(t.id);
+                    setDragTodo({ id: t.id, text: t.text });
+                    e.dataTransfer.setData('application/todo-json', JSON.stringify({ id: t.id, text: t.text }));
+                    e.dataTransfer.effectAllowed = 'copyMove';
+                    const ghost = document.createElement('div');
+                    ghost.textContent = t.text;
+                    ghost.style.cssText = [
+                      'position:fixed', 'top:-200px', 'left:0',
+                      'background:#1e1f2e', 'color:#fff', 'font-size:13px', 'font-weight:600',
+                      'font-family:Inter,system-ui,sans-serif',
+                      'padding:8px 16px', 'border-radius:10px',
+                      'border:1px solid #4f7df9',
+                      'box-shadow:0 8px 24px rgba(79,125,249,0.4)',
+                      'pointer-events:none', 'white-space:nowrap',
+                      'max-width:240px', 'overflow:hidden', 'text-overflow:ellipsis',
+                    ].join(';');
+                    document.body.appendChild(ghost);
+                    e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
+                    requestAnimationFrame(() => {
+                      if (document.body.contains(ghost)) document.body.removeChild(ghost);
+                    });
                   }}
-                />
-                <button onClick={() => del(t.id)}
-                  className="flex items-center justify-center text-lg leading-none opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                  style={{ width: 20, height: 20, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
-                  onMouseOver={e => (e.currentTarget.style.color = 'var(--accent-red)')}
-                  onMouseOut={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-                  ×
-                </button>
+                  onDragOver={e => {
+                    if (!draggingId || draggingId === t.id || t.done) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                    const pos = e.clientY < rect.top + rect.height / 2 ? 'above' : 'below';
+                    setDragOverId(t.id);
+                    setDragOverPos(pos);
+                  }}
+                  onDrop={e => handleDrop(e, t.id, t.done)}
+                  onDragEnd={() => {
+                    setDraggingId(null);
+                    setDragTodo(null);
+                    setDragOverId(null);
+                  }}
+                  className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${t.done ? 'opacity-60' : ''} ${draggingId === t.id ? 'opacity-40 scale-95' : ''}`}
+                  style={{
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-subtle)',
+                    cursor: canDrag ? 'grab' : 'default',
+                  }}
+                >
+                  {canDrag && (
+                    <div
+                      className="opacity-0 group-hover:opacity-30 transition-opacity shrink-0"
+                      style={{ color: 'var(--text-secondary)', lineHeight: 0 }}
+                    >
+                      <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                        <circle cx="3" cy="3"  r="1.3"/>
+                        <circle cx="7" cy="3"  r="1.3"/>
+                        <circle cx="3" cy="7"  r="1.3"/>
+                        <circle cx="7" cy="7"  r="1.3"/>
+                        <circle cx="3" cy="11" r="1.3"/>
+                        <circle cx="7" cy="11" r="1.3"/>
+                      </svg>
+                    </div>
+                  )}
+                  {editId === t.id ? (
+                    <input autoFocus value={editTxt}
+                      onChange={e => setEditTxt(e.target.value)}
+                      onBlur={() => save(t.id)}
+                      onKeyDown={e => { if (e.key === 'Enter') save(t.id); if (e.key === 'Escape') setEditId(null); }}
+                      className="flex-1 min-w-0 bg-transparent text-sm focus:outline-none border-b"
+                      style={{ color: 'var(--text-main)', borderColor: 'var(--accent-blue)' }} />
+                  ) : (
+                    <span
+                      onDoubleClick={() => { setEditId(t.id); setEditTxt(t.text); }}
+                      title={canDrag ? 'Drag to reorder · Drag to time block · Double-click to edit' : 'Double-click to edit'}
+                      className="flex-1 min-w-0 text-sm truncate select-none"
+                      style={{ color: t.done ? 'var(--text-muted)' : 'var(--text-main)', textDecoration: t.done ? 'line-through' : 'none' }}>
+                      {t.text}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => toggle(t.id)}
+                    className="transition-all"
+                    style={{
+                      width: 22, height: 22, flexShrink: 0,
+                      borderRadius: 6,
+                      border: t.done ? 'none' : '1px solid var(--border-main)',
+                      background: t.done ? 'var(--accent-green)' : 'transparent',
+                      cursor: 'pointer',
+                      boxShadow: t.done ? '0 0 10px rgba(0,208,132,0.3)' : 'none',
+                    }}
+                  />
+                  <button onClick={() => del(t.id)}
+                    className="flex items-center justify-center text-lg leading-none opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                    style={{ width: 20, height: 20, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                    onMouseOver={e => (e.currentTarget.style.color = 'var(--accent-red)')}
+                    onMouseOut={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+                    ×
+                  </button>
+                </div>
+                {showBelow && (
+                  <div style={{ height: 2, background: 'var(--accent-blue)', borderRadius: 2, margin: '1px 8px', opacity: 0.8 }} />
+                )}
               </div>
             );
           })}
