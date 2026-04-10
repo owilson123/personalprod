@@ -48,7 +48,7 @@ export function DatePickerCalendar({ selectedDate, onSelect, onClose, anchorRef,
 
   // Close on outside click
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
+    const handler = (e: Event) => {
       if (calRef.current && !calRef.current.contains(e.target as Node) &&
           anchorRef.current && !anchorRef.current.contains(e.target as Node)) {
         handleClose();
