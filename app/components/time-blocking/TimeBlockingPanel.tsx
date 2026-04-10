@@ -75,12 +75,11 @@ export function TimeBlockingPanel({ date }: Props) {
     if (!containerRef.current) return;
     if ((e.target as HTMLElement).closest('[data-block]')) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const scrollY = scrollRef.current?.scrollTop ?? 0;
-    const y = e.clientY - rect.top + scrollY;
+    const y = e.clientY - rect.top;
     const rawMin = y / PX_PER_MIN + START_HOUR * 60;
     const snap = Math.floor(rawMin / 30) * 30;
-    const start = clamp(snap, START_HOUR * 60, END_HOUR * 60 + 30);
-    const end = clamp(start + 30, 0, 24 * 60);
+    const start = clamp(snap, START_HOUR * 60, END_HOUR * 60);
+    const end = clamp(start + 30, START_HOUR * 60 + 30, (END_HOUR + 1) * 60);
     setModal({ start, end, task: '' });
   };
 
