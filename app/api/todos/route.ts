@@ -21,16 +21,25 @@ export async function GET(req: Request) {
       orderBy: { position: 'asc' },
     });
 
-    // Rollover: if this date has no entries yet, copy undone from the previous day
+    // Rollover: if this date has no entries yet, walk back through previous days
+    // (up to 90 days) until we find undone tasks to carry forward.
     if (todos.length === 0) {
-      const prevDate = format(subDays(parseISO(date), 1), 'yyyy-MM-dd');
-      const prev = await prisma.todo.findMany({
-        where: { userId, date: prevDate, done: false },
-        orderBy: { position: 'asc' },
-      });
-      if (prev.length > 0) {
+      let undone: typeof todos = [];
+      for (let daysBack = 1; daysBack <= 90; daysBack++) {
+        const prevDate = format(subDays(parseISO(date), daysBack), 'yyyy-MM-dd');
+        const prev = await prisma.todo.findMany({
+          where: { userId, date: prevDate },
+          orderBy: { position: 'asc' },
+        });
+        // Stop searching once we reach a day that actually had entries
+        if (prev.length > 0) {
+          undone = prev.filter(t => !t.done);
+          break;
+        }
+      }
+      if (undone.length > 0) {
         await prisma.todo.createMany({
-          data: prev.map((t, i) => ({ userId, text: t.text, done: false, position: i, date })),
+          data: undone.map((t, i) => ({ userId, text: t.text, done: false, position: i, date })),
         });
         todos = await prisma.todo.findMany({
           where: { userId, date },
