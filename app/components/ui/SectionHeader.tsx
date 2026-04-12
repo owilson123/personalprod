@@ -1,11 +1,50 @@
 'use client';
 
-export function SectionHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
+export function SectionHeader({
+  title,
+  subtitle,
+  action,
+  accent = '#6366f1',
+}: {
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+  accent?: string;
+}) {
   return (
-    <div className="flex items-center gap-3 px-4 shrink-0" style={{ paddingTop: 12, paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
-      <div className="w-1 rounded-full" style={{ height: 18, background: 'linear-gradient(180deg, var(--accent-blue), var(--accent-blue-deep))', flexShrink: 0, boxShadow: '0 0 8px rgba(79,125,249,0.4)' }} />
-      <h2 className="font-bold tracking-tight" style={{ fontSize: 14, color: 'var(--text-main)', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{title}</h2>
-      {subtitle && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{subtitle}</span>}
+    <div
+      className="flex items-center gap-3 px-4 shrink-0"
+      style={{
+        paddingTop: 14,
+        paddingBottom: 14,
+        borderBottom: '1px solid var(--border-subtle)',
+      }}
+    >
+      <div
+        style={{
+          width: 4,
+          height: 20,
+          borderRadius: 2,
+          background: accent,
+          flexShrink: 0,
+        }}
+      />
+      <h2
+        style={{
+          fontSize: 17,
+          fontWeight: 800,
+          color: 'var(--text-main)',
+          letterSpacing: '-0.03em',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {title}
+      </h2>
+      {subtitle && (
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
+          {subtitle}
+        </span>
+      )}
       {action && <div className="ml-auto">{action}</div>}
     </div>
   );

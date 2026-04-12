@@ -166,7 +166,7 @@ export function TodoList({ date }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <SectionHeader title="To-Do List" />
+      <SectionHeader title="To-Do List" accent="#6366f1" />
       <div className="flex-1 overflow-hidden flex flex-col px-3 pb-2">
         <div className="flex-1 overflow-y-auto space-y-1 scrollbar-thin">
           {todos.length === 0 && (
@@ -227,11 +227,12 @@ export function TodoList({ date }: Props) {
                     setDragTodo(null);
                     setDragOverId(null);
                   }}
-                  className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${t.done ? 'opacity-60' : ''} ${draggingId === t.id ? 'opacity-40 scale-95' : ''}`}
+                  className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${draggingId === t.id ? 'opacity-40 scale-95' : ''}`}
                   style={{
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-subtle)',
+                    background: t.done ? 'rgba(34,197,94,0.04)' : 'var(--bg-card)',
+                    border: `1px solid ${t.done ? 'rgba(34,197,94,0.12)' : 'var(--border-subtle)'}`,
                     cursor: canDrag ? 'grab' : 'default',
+                    opacity: t.done ? 0.65 : 1,
                   }}
                 >
                   {canDrag && (

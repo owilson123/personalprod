@@ -280,7 +280,7 @@ export function TimeBlockingPanel({ date }: Props) {
 
   return (
     <div className="flex flex-col h-full select-none">
-      <SectionHeader title="Time Blocking" subtitle={mounted ? date : ''} />
+      <SectionHeader title="Time Blocking" subtitle={mounted ? date : ''} accent="#8b5cf6" />
 
       <div
         ref={scrollRef}

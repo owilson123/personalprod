@@ -114,7 +114,7 @@ export function HabitTracker({ selectedDate }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <SectionHeader title="Habit Tracker" />
+      <SectionHeader title="Habit Tracker" accent="#22c55e" />
       <div className="flex-1 overflow-hidden flex flex-col px-3 pb-2">
 
         {/* Day header — px + 1px border offset matches the rounded row cards below */}

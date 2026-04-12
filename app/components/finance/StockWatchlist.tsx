@@ -125,7 +125,7 @@ export function StockWatchlist() {
 
   return (
     <div className="flex flex-col h-full">
-      <SectionHeader title="Watchlist" action={addButton} />
+      <SectionHeader title="Watchlist" action={addButton} accent="#f59e0b" />
       <div className="flex-1 overflow-y-auto scrollbar-thin px-3 pb-2 space-y-1">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (

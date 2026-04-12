@@ -1,20 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 /* ─── Dark theme (default) ──────────────────────────────────────────────── */
 :root {
-  --bg-dark: #0f1117;
-  --bg-card: #1a1b23;
-  --bg-input: #242530;
-  --bg-header: #12131a;
+  --bg-dark: #0a0a0f;
+  --bg-card: #111118;
+  --bg-input: #191924;
+  --bg-header: #0a0a0f;
   --bg-tabbar: #13141c;
   --text-main: #f0f0f5;
   --text-secondary: #8b8ca0;
   --text-muted: #52536a;
   --text-hover: #c8c8d4;
   --text-today: #e8e8f0;
-  --border-main: #2a2b3d;
-  --border-subtle: #1e1f2a;
+  --border-main: #1e1e30;
+  --border-subtle: #161622;
   --border-hover: #3a3b52;
   --accent-blue: #4f7df9;
   --accent-blue-deep: #3b6ae8;

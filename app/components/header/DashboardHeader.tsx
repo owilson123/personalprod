@@ -115,28 +115,15 @@ export function DashboardHeader({ selectedDate, onPrev, onNext, onDateSelect, cu
   return (
     <header className="flex items-center justify-between px-6 py-2.5 shrink-0"
       style={{
-        background: 'linear-gradient(180deg, var(--bg-header) 0%, var(--bg-dark) 100%)',
+        background: 'var(--bg-header)',
         borderBottom: '1px solid var(--border-subtle)',
-        boxShadow: '0 1px 12px var(--shadow)',
-        transition: 'background 0.25s, border-color 0.25s, box-shadow 0.25s',
+        transition: 'background 0.25s, border-color 0.25s',
       }}>
 
       {/* Left — logo + title */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #4f7df9, #3b6ae8)' }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <rect x="1" y="6" width="3" height="9" rx="1" fill="white" opacity="0.9" />
-            <rect x="6" y="3" width="3" height="12" rx="1" fill="white" />
-            <rect x="11" y="1" width="3" height="14" rx="1" fill="white" opacity="0.9" />
-          </svg>
-        </div>
-        <h1 className="font-bold tracking-tight" style={{
-          fontSize: 17,
-          background: 'linear-gradient(135deg, var(--text-main), var(--text-secondary))',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}>
+        <div style={{ width: 5, height: 28, borderRadius: 3, background: 'linear-gradient(180deg, #6366f1, #8b5cf6)', flexShrink: 0 }} />
+        <h1 style={{ fontSize: 17, fontWeight: 900, color: 'var(--text-main)', letterSpacing: '-0.04em' }}>
           Command Center
         </h1>
       </div>
