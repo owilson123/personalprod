@@ -227,18 +227,23 @@ export function TodoList({ date }: Props) {
                     setDragTodo(null);
                     setDragOverId(null);
                   }}
-                  className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${draggingId === t.id ? 'opacity-40 scale-95' : ''}`}
+                  className={`flex items-center rounded-lg px-2.5 py-1 group gap-2 transition-all ${t.done ? 'todo-row-done' : ''} ${draggingId === t.id ? 'opacity-40 scale-95' : ''}`}
                   style={{
-                    background: t.done ? 'rgba(34,197,94,0.04)' : 'var(--bg-card)',
-                    border: `1px solid ${t.done ? 'rgba(34,197,94,0.12)' : 'var(--border-subtle)'}`,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    background: 'var(--bg-card)',
+                    border: `1px solid ${t.done ? 'rgba(34,197,94,0.15)' : 'var(--border-subtle)'}`,
                     cursor: canDrag ? 'grab' : 'default',
-                    opacity: t.done ? 0.65 : 1,
+                    opacity: t.done ? 0.7 : 1,
+                    transition: 'opacity 0.2s, border-color 0.35s',
                   }}
                 >
+                  <div className="todo-sweep" />
+                  {/* All content sits above the sweep layer */}
                   {canDrag && (
                     <div
                       className="opacity-0 group-hover:opacity-30 transition-opacity shrink-0"
-                      style={{ color: 'var(--text-secondary)', lineHeight: 0 }}
+                      style={{ color: 'var(--text-secondary)', lineHeight: 0, position: 'relative', zIndex: 1 }}
                     >
                       <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
                         <circle cx="3" cy="3"  r="1.3"/>
@@ -256,31 +261,33 @@ export function TodoList({ date }: Props) {
                       onBlur={() => save(t.id)}
                       onKeyDown={e => { if (e.key === 'Enter') save(t.id); if (e.key === 'Escape') setEditId(null); }}
                       className="flex-1 min-w-0 bg-transparent text-sm focus:outline-none border-b"
-                      style={{ color: 'var(--text-main)', borderColor: 'var(--accent-blue)' }} />
+                      style={{ color: 'var(--text-main)', borderColor: 'var(--accent-blue)', position: 'relative', zIndex: 1 }} />
                   ) : (
                     <span
                       onDoubleClick={() => { setEditId(t.id); setEditTxt(t.text); }}
                       title={canDrag ? 'Drag to reorder · Drag to time block · Double-click to edit' : 'Double-click to edit'}
                       className="flex-1 min-w-0 text-sm truncate select-none"
-                      style={{ color: t.done ? 'var(--text-muted)' : 'var(--text-main)', textDecoration: t.done ? 'line-through' : 'none' }}>
+                      style={{ color: t.done ? 'var(--text-muted)' : 'var(--text-main)', textDecoration: t.done ? 'line-through' : 'none', position: 'relative', zIndex: 1 }}>
                       {t.text}
                     </span>
                   )}
+                  {/* Minimal circle toggle — sweep is the main visual feedback */}
                   <button
                     onClick={() => toggle(t.id)}
                     className="transition-all"
                     style={{
-                      width: 22, height: 22, flexShrink: 0,
-                      borderRadius: 6,
-                      border: t.done ? 'none' : '1px solid var(--border-main)',
-                      background: t.done ? 'var(--accent-green)' : 'transparent',
+                      width: 20, height: 20, flexShrink: 0,
+                      borderRadius: '50%',
+                      border: t.done ? '1.5px solid rgba(34,197,94,0.6)' : '1.5px solid var(--border-main)',
+                      background: 'transparent',
                       cursor: 'pointer',
-                      boxShadow: t.done ? '0 0 10px rgba(0,208,132,0.3)' : 'none',
+                      position: 'relative', zIndex: 1,
+                      transition: 'border-color 0.3s',
                     }}
                   />
                   <button onClick={() => del(t.id)}
                     className="flex items-center justify-center text-lg leading-none opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                    style={{ width: 20, height: 20, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                    style={{ width: 20, height: 20, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}
                     onMouseOver={e => (e.currentTarget.style.color = 'var(--accent-red)')}
                     onMouseOut={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
                     ×
