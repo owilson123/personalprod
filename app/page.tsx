@@ -188,14 +188,14 @@ export default function DashboardPage() {
 
       <div className="flex flex-1 overflow-hidden" ref={containerRef}>
         {/* Left — Time Blocking */}
-        <div className="flex flex-col overflow-hidden shrink-0" style={{ width: `${leftWidth}%` }}>
+        <div className="glass-panel flex flex-col overflow-hidden shrink-0" style={{ width: `${leftWidth}%` }}>
           <TimeBlockingPanel date={selectedDate} />
         </div>
 
         <div {...divider(onLeftDividerDown, 'col')} />
 
         {/* Middle — Todo / Habits+Notes */}
-        <div className="flex flex-col overflow-hidden flex-1" ref={middleColRef}>
+        <div className="glass-panel flex flex-col overflow-hidden flex-1" ref={middleColRef}>
           <div className="overflow-hidden flex flex-col shrink-0" style={{ height: `${todoHeight}%` }}>
             <TodoList date={selectedDate} />
           </div>
@@ -242,7 +242,7 @@ export default function DashboardPage() {
         <div {...divider(onRightDividerDown, 'col')} />
 
         {/* Right — Finance Panel */}
-        <div className="flex flex-col overflow-hidden shrink-0" style={{ width: `${rightWidth}%` }}>
+        <div className="glass-panel flex flex-col overflow-hidden shrink-0" style={{ width: `${rightWidth}%` }}>
           <FinancePanel />
         </div>
       </div>

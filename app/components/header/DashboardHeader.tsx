@@ -116,14 +116,28 @@ export function DashboardHeader({ selectedDate, onPrev, onNext, onDateSelect, cu
     <header className="flex items-center justify-between px-6 py-2.5 shrink-0"
       style={{
         background: 'var(--bg-header)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         borderBottom: '1px solid var(--border-subtle)',
         transition: 'background 0.25s, border-color 0.25s',
       }}>
 
       {/* Left — logo + title */}
       <div className="flex items-center gap-3">
-        <div style={{ width: 5, height: 28, borderRadius: 3, background: 'linear-gradient(180deg, #6366f1, #8b5cf6)', flexShrink: 0 }} />
-        <h1 style={{ fontSize: 17, fontWeight: 900, color: 'var(--text-main)', letterSpacing: '-0.04em' }}>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+          style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 4px 14px rgba(99,102,241,0.4)', flexShrink: 0 }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="6" width="3" height="9" rx="1" fill="white" opacity="0.9" />
+            <rect x="6" y="3" width="3" height="12" rx="1" fill="white" />
+            <rect x="11" y="1" width="3" height="14" rx="1" fill="white" opacity="0.9" />
+          </svg>
+        </div>
+        <h1 className="font-bold tracking-tight" style={{
+          fontSize: 17, fontWeight: 800, letterSpacing: '-0.03em',
+          background: 'linear-gradient(135deg, #ffffff, rgba(255,255,255,0.6))',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+        }}>
           Command Center
         </h1>
       </div>

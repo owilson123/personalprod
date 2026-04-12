@@ -3,34 +3,38 @@
 
 /* ─── Dark theme (default) ──────────────────────────────────────────────── */
 :root {
-  --bg-dark: #0a0a0f;
-  --bg-card: #111118;
-  --bg-input: #191924;
-  --bg-header: #0a0a0f;
-  --bg-tabbar: #13141c;
-  --text-main: #f0f0f5;
-  --text-secondary: #8b8ca0;
+  --bg-dark: #0d0d1a;
+  --bg-card: rgba(255,255,255,0.04);
+  --bg-input: rgba(255,255,255,0.07);
+  --bg-header: rgba(10,10,22,0.65);
+  --bg-tabbar: rgba(10,10,22,0.6);
+  --text-main: #eeeef8;
+  --text-secondary: #9090b8;
   --text-muted: #52536a;
-  --text-hover: #c8c8d4;
-  --text-today: #e8e8f0;
-  --border-main: #1e1e30;
-  --border-subtle: #161622;
-  --border-hover: #3a3b52;
-  --accent-blue: #4f7df9;
-  --accent-blue-deep: #3b6ae8;
+  --text-hover: #d0d0e8;
+  --text-today: #eeeef8;
+  --border-main: rgba(255,255,255,0.1);
+  --border-subtle: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.18);
+  --accent-blue: #6366f1;
+  --accent-blue-deep: #4f46e5;
   --accent-green: #00d084;
   --accent-red: #ff4757;
-  --shadow: rgba(0, 0, 0, 0.3);
-  --scrollbar-thumb: #2a2b3d;
-  --scrollbar-thumb-hover: #3a3b4d;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --scrollbar-thumb: rgba(255,255,255,0.1);
+  --scrollbar-thumb-hover: rgba(255,255,255,0.18);
 }
 
 /* ─── Light theme ────────────────────────────────────────────────────────── */
+[data-theme="light"] body {
+  background-image: none;
+}
+
 [data-theme="light"] {
   --bg-dark: #eef0f8;
   --bg-card: #ffffff;
   --bg-input: #f4f5fb;
-  --bg-header: #ffffff;
+  --bg-header: rgba(255,255,255,0.9);
   --bg-tabbar: #f8f9fd;
   --text-main: #1a1c2e;
   --text-secondary: #565878;
@@ -39,6 +43,8 @@
   --text-today: #1a1c2e;
   --border-main: #c4c8de;
   --border-subtle: #d4d8ec;
+  --scrollbar-thumb: #dde0f0;
+  --scrollbar-thumb-hover: #c4c8e0;
   --border-hover: #a0a6c8;
   --accent-blue: #3b6ae8;
   --accent-blue-deep: #2d57d4;
@@ -55,9 +61,21 @@ html, body { margin: 0; padding: 0; height: 100%; }
 body {
   font-family: "Inter", system-ui, sans-serif;
   background-color: var(--bg-dark);
+  background-image: radial-gradient(ellipse at 15% 20%, rgba(99,66,200,0.18) 0%, transparent 55%),
+                    radial-gradient(ellipse at 85% 80%, rgba(139,85,247,0.12) 0%, transparent 50%);
+  background-attachment: fixed;
   color: var(--text-main);
   transition: background-color 0.25s, color 0.25s;
 }
+
+/* ─── Frosted glass panel ───────────────────────────────────────────────── */
+.glass-panel {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  background: var(--bg-card) !important;
+  border-right: 1px solid var(--border-subtle);
+}
+.glass-panel:last-child { border-right: none; }
 
 input, textarea, select {
   font-family: "Inter", system-ui, sans-serif;
