@@ -7,6 +7,7 @@ import { TimeBlockingPanel } from '@/app/components/time-blocking/TimeBlockingPa
 import { TodoList } from '@/app/components/productivity/TodoList';
 import { NotesPanel } from '@/app/components/productivity/NotesPanel';
 import { HabitTracker } from '@/app/components/productivity/HabitTracker';
+import { TimerPanel } from '@/app/components/productivity/TimerPanel';
 import { FinancePanel } from '@/app/components/finance/FinancePanel';
 import { LoginModal } from '@/app/components/auth/LoginModal';
 import { TodoDragProvider } from '@/app/components/todo-drag-context';
@@ -66,7 +67,7 @@ export default function DashboardPage() {
   const [leftWidth,   setLeftWidth]   = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.leftWidth')  || 25));
   const [rightWidth,  setRightWidth]  = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.rightWidth') || 25));
   const [todoHeight,  setTodoHeight]  = useState(() => Number(typeof window !== 'undefined' && localStorage.getItem('layout.todoHeight') || 30));
-  const [bottomTab,   setBottomTab]   = useState<'habits' | 'notes'>(() => (typeof window !== 'undefined' && localStorage.getItem('layout.bottomTab') as 'habits' | 'notes') || 'habits');
+  const [bottomTab,   setBottomTab]   = useState<'habits' | 'notes' | 'timer'>(() => (typeof window !== 'undefined' && localStorage.getItem('layout.bottomTab') as 'habits' | 'notes' | 'timer') || 'habits');
 
   // Load layout from DB on mount (overrides localStorage if DB has values)
   useEffect(() => {
@@ -78,7 +79,7 @@ export default function DashboardPage() {
         if (prefs['layout.leftWidth'])  setLeftWidth(Number(prefs['layout.leftWidth']));
         if (prefs['layout.rightWidth']) setRightWidth(Number(prefs['layout.rightWidth']));
         if (prefs['layout.todoHeight']) setTodoHeight(Number(prefs['layout.todoHeight']));
-        if (prefs['layout.bottomTab'])  setBottomTab(prefs['layout.bottomTab'] as 'habits' | 'notes');
+        if (prefs['layout.bottomTab'])  setBottomTab(prefs['layout.bottomTab'] as 'habits' | 'notes' | 'timer');
       })
       .catch(() => {});
   }, [currentUser]);
@@ -206,35 +207,42 @@ export default function DashboardPage() {
           <div className="overflow-hidden flex flex-col" style={{ height: `${bottomHeight}%` }}>
             {/* Tab bar */}
             <div style={{ display: 'flex', background: 'var(--bg-tabbar)', borderBottom: '1px solid var(--border-subtle)', flexShrink: 0 }}>
-              {(['habits', 'notes'] as const).map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setBottomTab(tab)}
-                  style={{
-                    padding: '7px 18px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    background: 'none',
-                    border: 'none',
-                    borderBottom: bottomTab === tab ? '2px solid var(--accent-blue)' : '2px solid transparent',
-                    color: bottomTab === tab ? 'var(--accent-blue)' : 'var(--text-muted)',
-                    cursor: 'pointer',
-                    transition: 'color 0.15s, border-color 0.15s',
-                    marginBottom: '-1px',
-                  }}
-                >
-                  {tab === 'habits' ? 'Habit Tracker' : 'Notes'}
-                </button>
-              ))}
+              {([
+                { key: 'habits', label: 'Habit Tracker' },
+                { key: 'notes',  label: 'Notes' },
+                { key: 'timer',  label: 'Focus Timer' },
+              ] as const).map(({ key, label }) => {
+                const isActive = bottomTab === key;
+                const accentColor = key === 'timer' ? '#6366f1' : 'var(--accent-blue)';
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setBottomTab(key)}
+                    style={{
+                      padding: '7px 18px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase',
+                      background: 'none',
+                      border: 'none',
+                      borderBottom: isActive ? `2px solid ${accentColor}` : '2px solid transparent',
+                      color: isActive ? accentColor : 'var(--text-muted)',
+                      cursor: 'pointer',
+                      transition: 'color 0.15s, border-color 0.15s',
+                      marginBottom: '-1px',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
             {/* Tab content */}
             <div className="flex-1 overflow-hidden flex flex-col">
-              {bottomTab === 'habits'
-                ? <HabitTracker selectedDate={selectedDate} />
-                : <NotesPanel date={selectedDate} />
-              }
+              {bottomTab === 'habits' && <HabitTracker selectedDate={selectedDate} />}
+              {bottomTab === 'notes'  && <NotesPanel date={selectedDate} />}
+              {bottomTab === 'timer'  && <TimerPanel />}
             </div>
           </div>
         </div>
