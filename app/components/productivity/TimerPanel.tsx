@@ -2,19 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-// ── Preset configurations ────────────────────────────────────────────────────
+// ── Presets ──────────────────────────────────────────────────────────────────
 const PRESETS = [
-  { label: 'Focus',  minutes: 25, color: '#6366f1', glow: 'rgba(99,102,241,0.35)' },
-  { label: 'Short',  minutes: 5,  color: '#00d084', glow: 'rgba(0,208,132,0.3)'   },
-  { label: 'Long',   minutes: 15, color: '#a78bfa', glow: 'rgba(167,139,250,0.3)' },
-  { label: 'Custom', minutes: 0,  color: '#f59e0b', glow: 'rgba(245,158,11,0.3)'  },
+  { label: 'Short',  minutes: 25, color: '#f59e0b', dim: 'rgba(245,158,11,0.12)',  glow: 'rgba(245,158,11,0.4)'  },
+  { label: 'Long',   minutes: 50, color: '#6366f1', dim: 'rgba(99,102,241,0.12)',  glow: 'rgba(99,102,241,0.4)'  },
+  { label: 'Custom', minutes: 0,  color: '#e879f9', dim: 'rgba(232,121,249,0.12)', glow: 'rgba(232,121,249,0.4)' },
 ] as const;
 
-type PresetKey = 0 | 1 | 2 | 3;
+type PresetKey = 0 | 1 | 2;
 type Phase = 'idle' | 'running' | 'paused' | 'done';
-
-const RADIUS = 88;
-const CIRC = 2 * Math.PI * RADIUS;
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
 function fmtTime(secs: number) {
@@ -23,55 +19,55 @@ function fmtTime(secs: number) {
   return `${pad(m)}:${pad(s)}`;
 }
 
-// ── Keyframe CSS injected once ───────────────────────────────────────────────
-const STYLE_ID = 'timer-panel-styles';
-const KEYFRAMES = `
-@keyframes timerPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.85; transform: scale(0.997); }
+// ── Styles injected once ─────────────────────────────────────────────────────
+const STYLE_ID = 'timer-panel-v2';
+const CSS = `
+@keyframes tp-bar {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
 }
-@keyframes timerDone {
-  0%   { transform: scale(1); }
-  15%  { transform: scale(1.06); }
-  30%  { transform: scale(0.97); }
-  45%  { transform: scale(1.03); }
-  60%  { transform: scale(0.99); }
-  100% { transform: scale(1); }
-}
-@keyframes timerRingGlow {
-  0%, 100% { filter: drop-shadow(0 0 6px var(--t-glow)); }
-  50%       { filter: drop-shadow(0 0 14px var(--t-glow)); }
-}
-@keyframes sessionPop {
-  0%   { transform: scale(0.6); opacity: 0; }
-  70%  { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-@keyframes timerFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+@keyframes tp-fadein {
+  from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes tp-done {
+  0%   { transform: scale(1); }
+  20%  { transform: scale(1.04); }
+  40%  { transform: scale(0.98); }
+  60%  { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+@keyframes tp-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  70%  { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes tp-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+.tp-btn-main:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.tp-btn-main:active { transform: translateY(0); filter: brightness(0.95); }
+.tp-preset:hover { border-color: var(--tp-c) !important; color: var(--tp-c) !important; }
 `;
 
 function injectStyles() {
-  if (typeof document === 'undefined') return;
-  if (document.getElementById(STYLE_ID)) return;
+  if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return;
   const el = document.createElement('style');
   el.id = STYLE_ID;
-  el.textContent = KEYFRAMES;
+  el.textContent = CSS;
   document.head.appendChild(el);
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
 export function TimerPanel() {
-  const [preset, setPreset]         = useState<PresetKey>(0);
-  const [phase,  setPhase]          = useState<Phase>('idle');
-  const [secsLeft, setSecsLeft]     = useState(PRESETS[0].minutes * 60);
-  const [totalSecs, setTotalSecs]   = useState(PRESETS[0].minutes * 60);
-  const [sessions, setSessions]     = useState(0);
-  const [customMin, setCustomMin]   = useState(30);
-  const [editingCustom, setEditingCustom] = useState(false);
-  const [doneAnim, setDoneAnim]     = useState(false);
+  const [preset,    setPreset]    = useState<PresetKey>(0);
+  const [phase,     setPhase]     = useState<Phase>('idle');
+  const [secsLeft,  setSecsLeft]  = useState(PRESETS[0].minutes * 60);
+  const [totalSecs, setTotalSecs] = useState(PRESETS[0].minutes * 60);
+  const [sessions,  setSessions]  = useState(0);
+  const [customMin, setCustomMin] = useState(45);
+  const [doneAnim,  setDoneAnim]  = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => { injectStyles(); }, []);
@@ -96,342 +92,310 @@ export function TimerPanel() {
 
   useEffect(() => {
     if (!doneAnim) return;
-    const t = setTimeout(() => setDoneAnim(false), 700);
+    const t = setTimeout(() => setDoneAnim(false), 800);
     return () => clearTimeout(t);
   }, [doneAnim]);
 
-  // ── Preset change ─────────────────────────────────────────────────────────
   const applyPreset = useCallback((idx: PresetKey) => {
     setPreset(idx);
     setPhase('idle');
     clearInterval(intervalRef.current!);
-    const mins = idx === 3 ? customMin : PRESETS[idx].minutes;
+    const mins = idx === 2 ? customMin : PRESETS[idx].minutes;
     setSecsLeft(mins * 60);
     setTotalSecs(mins * 60);
   }, [customMin]);
 
-  // ── Controls ──────────────────────────────────────────────────────────────
-  const handleStart = () => setPhase('running');
-  const handlePause = () => setPhase('paused');
-  const handleReset = () => {
+  const handleStart  = () => setPhase('running');
+  const handlePause  = () => setPhase('paused');
+  const handleResume = () => setPhase('running');
+  const handleReset  = () => {
     clearInterval(intervalRef.current!);
     setPhase('idle');
-    const mins = preset === 3 ? customMin : PRESETS[preset].minutes;
+    const mins = preset === 2 ? customMin : PRESETS[preset].minutes;
     setSecsLeft(mins * 60);
     setTotalSecs(mins * 60);
   };
-  const handleResume = () => setPhase('running');
 
-  const handleCustomSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setEditingCustom(false);
-    if (preset === 3) {
-      setSecsLeft(customMin * 60);
-      setTotalSecs(customMin * 60);
+  const handleCustomChange = (val: number) => {
+    const clamped = Math.max(1, Math.min(480, val));
+    setCustomMin(clamped);
+    if (preset === 2) {
+      setSecsLeft(clamped * 60);
+      setTotalSecs(clamped * 60);
       setPhase('idle');
     }
   };
 
   // ── Derived ───────────────────────────────────────────────────────────────
+  const cfg      = PRESETS[preset];
   const progress = totalSecs > 0 ? secsLeft / totalSecs : 1;
-  const dashOffset = CIRC * (1 - progress);
-  const cfg = PRESETS[preset];
-  const color = cfg.color;
-  const glow  = cfg.glow;
-
   const isRunning = phase === 'running';
   const isPaused  = phase === 'paused';
   const isDone    = phase === 'done';
   const isIdle    = phase === 'idle';
 
-  // Label inside ring
-  const centerLabel = isDone ? '✓' : fmtTime(secsLeft);
+  const statusLabel = isDone ? 'Done' : isRunning ? 'Focusing' : isPaused ? 'Paused' : cfg.label;
 
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
-      padding: '20px 16px 16px',
-      gap: '18px',
       height: '100%',
+      padding: '14px 18px 14px',
+      gap: '12px',
       overflowY: 'auto',
-      animation: 'timerFadeIn 0.3s ease',
+      animation: 'tp-fadein 0.25s ease',
     }}>
 
-      {/* ── Preset selector ───────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+      {/* ── Preset row ────────────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: '6px' }}>
         {PRESETS.map((p, i) => {
           const active = preset === i;
           return (
             <button
               key={p.label}
+              className="tp-preset"
               onClick={() => applyPreset(i as PresetKey)}
               style={{
-                padding: '5px 14px',
-                borderRadius: '20px',
+                flex: 1,
+                padding: '7px 0',
+                borderRadius: '10px',
                 fontSize: '11px',
-                fontWeight: 600,
-                letterSpacing: '0.05em',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
                 textTransform: 'uppercase',
                 border: `1.5px solid ${active ? p.color : 'var(--border-subtle)'}`,
-                background: active ? `${p.color}22` : 'transparent',
+                background: active ? p.dim : 'transparent',
                 color: active ? p.color : 'var(--text-muted)',
                 cursor: 'pointer',
-                transition: 'all 0.18s ease',
-              }}
+                transition: 'all 0.15s ease',
+                '--tp-c': p.color,
+              } as React.CSSProperties}
             >
-              {p.label}{i !== 3 ? ` · ${p.minutes}m` : ''}
+              {p.label}
+              {i !== 2 && (
+                <span style={{ display: 'block', fontSize: '10px', fontWeight: 500, opacity: 0.7, marginTop: '1px' }}>
+                  {p.minutes}m
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* ── Custom duration input ─────────────────────────────────────────── */}
-      {preset === 3 && (
-        <form onSubmit={handleCustomSubmit} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="number"
-            min={1} max={240}
-            value={customMin}
-            onChange={e => setCustomMin(Math.max(1, Math.min(240, Number(e.target.value))))}
-            onFocus={() => setEditingCustom(true)}
-            style={{
-              width: '64px',
-              padding: '4px 8px',
-              borderRadius: '8px',
-              border: '1.5px solid var(--border-main)',
-              background: 'var(--bg-input)',
-              color: 'var(--text-main)',
-              fontSize: '14px',
-              textAlign: 'center',
-            }}
-          />
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>min</span>
-          {editingCustom && (
-            <button type="submit" style={{
-              padding: '4px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 600,
-              background: cfg.color, color: '#fff', border: 'none', cursor: 'pointer',
-            }}>Set</button>
-          )}
-        </form>
+      {/* ── Custom input ──────────────────────────────────────────────────── */}
+      {preset === 2 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <button
+            onClick={() => handleCustomChange(customMin - 5)}
+            style={{ ...nudgeBtnStyle, color: cfg.color, borderColor: cfg.color + '44' }}
+          >−</button>
+          <div style={{ textAlign: 'center' }}>
+            <input
+              type="number"
+              min={1} max={480}
+              value={customMin}
+              onChange={e => handleCustomChange(Number(e.target.value))}
+              style={{
+                width: '52px',
+                padding: '3px 0',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: `1.5px solid ${cfg.color}66`,
+                color: cfg.color,
+                fontSize: '18px',
+                fontWeight: 700,
+                textAlign: 'center',
+                outline: 'none',
+              }}
+            />
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.08em', marginTop: '1px' }}>MINUTES</div>
+          </div>
+          <button
+            onClick={() => handleCustomChange(customMin + 5)}
+            style={{ ...nudgeBtnStyle, color: cfg.color, borderColor: cfg.color + '44' }}
+          >+</button>
+        </div>
       )}
 
-      {/* ── Ring ──────────────────────────────────────────────────────────── */}
+      {/* ── Time display ──────────────────────────────────────────────────── */}
       <div style={{
-        position: 'relative',
-        width: 210,
-        height: 210,
-        flexShrink: 0,
-        animation: doneAnim ? 'timerDone 0.7s ease' : isRunning ? 'timerPulse 4s ease-in-out infinite' : 'none',
-        '--t-glow': glow,
-      } as React.CSSProperties}>
-        <svg
-          width={210} height={210}
-          style={{
-            transform: 'rotate(-90deg)',
-            animation: isRunning ? 'timerRingGlow 3s ease-in-out infinite' : 'none',
-            '--t-glow': glow,
-          } as React.CSSProperties}
-        >
-          {/* Track */}
-          <circle
-            cx={105} cy={105} r={RADIUS}
-            fill="none"
-            stroke="var(--border-subtle)"
-            strokeWidth={10}
-          />
-          {/* Progress arc */}
-          <circle
-            cx={105} cy={105} r={RADIUS}
-            fill="none"
-            stroke={color}
-            strokeWidth={10}
-            strokeLinecap="round"
-            strokeDasharray={CIRC}
-            strokeDashoffset={dashOffset}
-            style={{ transition: 'stroke-dashoffset 0.85s linear, stroke 0.4s ease' }}
-          />
-          {/* Glow duplicate (blurred) */}
-          <circle
-            cx={105} cy={105} r={RADIUS}
-            fill="none"
-            stroke={color}
-            strokeWidth={4}
-            strokeLinecap="round"
-            strokeDasharray={CIRC}
-            strokeDashoffset={dashOffset}
-            opacity={0.35}
-            style={{
-              filter: `blur(6px)`,
-              transition: 'stroke-dashoffset 0.85s linear, stroke 0.4s ease',
-            }}
-          />
-        </svg>
-
-        {/* Center display */}
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '4px',
+        animation: doneAnim ? 'tp-done 0.8s ease' : 'none',
+        flex: 1,
+        justifyContent: 'center',
+      }}>
+        {/* Status label */}
         <div style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '4px',
+          fontSize: '10px',
+          fontWeight: 700,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: isDone || isRunning ? cfg.color : 'var(--text-muted)',
+          transition: 'color 0.3s ease',
+          marginBottom: '2px',
         }}>
-          <span style={{
-            fontSize: isDone ? '38px' : '32px',
-            fontWeight: 700,
-            fontVariantNumeric: 'tabular-nums',
-            letterSpacing: '-0.02em',
-            color: isDone ? color : 'var(--text-main)',
-            transition: 'color 0.3s ease, font-size 0.2s ease',
-            lineHeight: 1,
-          }}>
-            {centerLabel}
-          </span>
-          <span style={{
-            fontSize: '10px',
-            fontWeight: 600,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: isDone ? color : 'var(--text-muted)',
-            transition: 'color 0.3s ease',
-          }}>
-            {isDone ? 'Complete!' : isRunning ? 'Focusing' : isPaused ? 'Paused' : cfg.label}
-          </span>
+          {statusLabel}
+        </div>
+
+        {/* Big time */}
+        <div style={{
+          fontSize: '52px',
+          fontWeight: 800,
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.03em',
+          lineHeight: 1,
+          color: isDone ? cfg.color : 'var(--text-main)',
+          transition: 'color 0.3s ease',
+          animation: isPaused ? 'tp-blink 1.8s ease-in-out infinite' : 'none',
+        }}>
+          {isDone ? '✓' : fmtTime(secsLeft)}
+        </div>
+
+        {/* Progress bar */}
+        <div style={{
+          width: '100%',
+          maxWidth: 220,
+          height: 3,
+          borderRadius: 99,
+          background: 'var(--border-subtle)',
+          marginTop: '10px',
+          overflow: 'hidden',
+          position: 'relative',
+        }}>
+          <div style={{
+            position: 'absolute',
+            left: 0, top: 0, bottom: 0,
+            width: `${progress * 100}%`,
+            borderRadius: 99,
+            background: cfg.color,
+            boxShadow: `0 0 8px ${cfg.glow}`,
+            transition: 'width 0.85s linear, background 0.4s ease, box-shadow 0.4s ease',
+            animation: isRunning ? 'tp-bar 3s ease-in-out infinite' : 'none',
+          }} />
         </div>
       </div>
 
       {/* ── Controls ──────────────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        {/* Reset — always visible when not idle */}
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
         {!isIdle && (
-          <button onClick={handleReset} title="Reset" style={iconBtnStyle('var(--text-muted)', 'var(--border-subtle)')}>
+          <button onClick={handleReset} title="Reset" style={iconBtnStyle}>
             <ResetIcon />
           </button>
         )}
 
-        {/* Main action */}
         {(isIdle || isDone) && (
-          <button onClick={handleStart} style={primaryBtnStyle(color)}>
+          <button
+            className="tp-btn-main"
+            onClick={handleStart}
+            style={mainBtnStyle(cfg.color, cfg.glow)}
+          >
             {isDone ? 'Again' : 'Start'}
           </button>
         )}
         {isRunning && (
-          <button onClick={handlePause} style={primaryBtnStyle(color)}>
+          <button className="tp-btn-main" onClick={handlePause} style={mainBtnStyle(cfg.color, cfg.glow)}>
             Pause
           </button>
         )}
         {isPaused && (
-          <button onClick={handleResume} style={primaryBtnStyle(color)}>
+          <button className="tp-btn-main" onClick={handleResume} style={mainBtnStyle(cfg.color, cfg.glow)}>
             Resume
           </button>
         )}
       </div>
 
-      {/* ── Session dots ──────────────────────────────────────────────────── */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '8px',
-      }}>
-        <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '180px' }}>
-          {Array.from({ length: Math.max(sessions, 4) }).map((_, i) => (
-            <div
-              key={i}
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                background: i < sessions ? color : 'var(--border-subtle)',
-                boxShadow: i < sessions ? `0 0 6px ${glow}` : 'none',
-                transition: 'background 0.3s ease, box-shadow 0.3s ease',
-                animation: i === sessions - 1 && doneAnim ? 'sessionPop 0.5s ease' : 'none',
-              }}
-            />
-          ))}
+      {/* ── Session ticks ─────────────────────────────────────────────────── */}
+      {(sessions > 0 || !isIdle) && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {Array.from({ length: Math.max(sessions, 1) }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 28,
+                  height: 4,
+                  borderRadius: 2,
+                  background: i < sessions ? cfg.color : 'var(--border-subtle)',
+                  boxShadow: i < sessions ? `0 0 6px ${cfg.glow}` : 'none',
+                  transition: 'background 0.3s, box-shadow 0.3s',
+                  animation: i === sessions - 1 && doneAnim ? 'tp-pop 0.5s ease' : 'none',
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+              {sessions} session{sessions !== 1 ? 's' : ''}
+            </span>
+            {sessions > 0 && (
+              <button
+                onClick={() => setSessions(0)}
+                style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: 0.6 }}
+              >
+                clear
+              </button>
+            )}
+          </div>
         </div>
-        {sessions > 0 && (
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-            {sessions} session{sessions !== 1 ? 's' : ''} completed
-          </span>
-        )}
-        {sessions > 0 && (
-          <button
-            onClick={() => setSessions(0)}
-            style={{
-              fontSize: '10px',
-              color: 'var(--text-muted)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              textUnderlineOffset: '2px',
-              padding: 0,
-            }}
-          >
-            reset count
-          </button>
-        )}
-      </div>
-
-      {/* ── Tip ───────────────────────────────────────────────────────────── */}
-      {isIdle && sessions === 0 && (
-        <p style={{
-          fontSize: '11px',
-          color: 'var(--text-muted)',
-          textAlign: 'center',
-          maxWidth: '200px',
-          lineHeight: 1.6,
-          margin: 0,
-        }}>
-          Work in focused sprints to stay sharp. After 4 sessions, take a longer break.
-        </p>
       )}
     </div>
   );
 }
 
 // ── Style helpers ─────────────────────────────────────────────────────────────
-function primaryBtnStyle(color: string): React.CSSProperties {
+function mainBtnStyle(color: string, glow: string): React.CSSProperties {
   return {
-    padding: '10px 28px',
-    borderRadius: '24px',
-    fontSize: '13px',
+    padding: '9px 32px',
+    borderRadius: '12px',
+    fontSize: '12px',
     fontWeight: 700,
-    letterSpacing: '0.05em',
+    letterSpacing: '0.08em',
     textTransform: 'uppercase',
     background: color,
     color: '#fff',
     border: 'none',
     cursor: 'pointer',
-    boxShadow: `0 4px 16px ${color}55`,
-    transition: 'transform 0.1s ease, box-shadow 0.15s ease',
+    boxShadow: `0 4px 18px ${glow}`,
+    transition: 'filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease',
   };
 }
 
-function iconBtnStyle(color: string, border: string): React.CSSProperties {
-  return {
-    width: 40,
-    height: 40,
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'transparent',
-    border: `1.5px solid ${border}`,
-    color,
-    cursor: 'pointer',
-    transition: 'border-color 0.15s, color 0.15s',
-  };
-}
+const iconBtnStyle: React.CSSProperties = {
+  width: 36,
+  height: 36,
+  borderRadius: '10px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'transparent',
+  border: '1.5px solid var(--border-subtle)',
+  color: 'var(--text-muted)',
+  cursor: 'pointer',
+};
+
+const nudgeBtnStyle: React.CSSProperties = {
+  width: 30,
+  height: 30,
+  borderRadius: '8px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'transparent',
+  border: '1.5px solid',
+  fontSize: '16px',
+  fontWeight: 600,
+  cursor: 'pointer',
+  lineHeight: 1,
+};
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function ResetIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
       <polyline points="3 3 3 8 8 8" />
     </svg>
