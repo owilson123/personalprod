@@ -37,12 +37,21 @@ function signData(data: string): string {
   return createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
 }
 
+/** Returns the Unix timestamp (ms) for the next 5:00am from now. */
+function next5amMs(): number {
+  const now = new Date();
+  const candidate = new Date(now);
+  candidate.setHours(5, 0, 0, 0);
+  if (candidate <= now) candidate.setDate(candidate.getDate() + 1);
+  return candidate.getTime();
+}
+
 export function createSessionToken(userId: string, name: string, isAdmin: boolean): string {
   const payload: SessionPayload = {
     userId,
     name,
     isAdmin,
-    exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    exp: next5amMs(), // expires at next 5:00am
   };
   const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const sig = signData(data);
@@ -89,7 +98,8 @@ export function getSessionFromRequest(req: Request): SessionPayload | null {
 }
 
 export function setSessionCookie(token: string): string {
-  return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${24 * 60 * 60}`;
+  const secondsUntil5am = Math.max(0, Math.floor((next5amMs() - Date.now()) / 1000));
+  return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${secondsUntil5am}`;
 }
 
 export function clearSessionCookie(): string {
