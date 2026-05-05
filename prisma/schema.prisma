@@ -60,6 +60,7 @@ model TimeBlock {
   startMinute Int
   endMinute   Int
   color       String
+  done        Boolean  @default(false)
   date        DateTime @db.Date
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -21,6 +21,7 @@ interface TimeBlock {
   startMinute: number;
   endMinute: number;
   color: string;
+  done: boolean;
 }
 
 interface Props { date: string; }
@@ -57,6 +58,7 @@ export function TimeBlockingPanel({ date }: Props) {
           startMinute: b.startMinute as number,
           endMinute: b.endMinute as number,
           color: b.color as string,
+          done: Boolean(b.done),
         })));
       }
     } catch { /* fallback to empty */ }
@@ -204,6 +206,7 @@ export function TimeBlockingPanel({ date }: Props) {
           startMinute: mergedStart,
           endMinute: mergedEnd,
           color: SUPER_COLOR,
+          done: false,
         };
         setBlocks(prev => [...prev, superBlock]);
         try {
@@ -233,7 +236,7 @@ export function TimeBlockingPanel({ date }: Props) {
     const color = COLORS[colorIdx.current % COLORS.length];
     colorIdx.current++;
     const tempId = uid();
-    setBlocks(prev => [...prev, { id: tempId, task, tasks: [], isSuperBlock: false, startMinute: start, endMinute: end, color }]);
+    setBlocks(prev => [...prev, { id: tempId, task, tasks: [], isSuperBlock: false, startMinute: start, endMinute: end, color, done: false }]);
     try {
       const res = await fetch('/api/time-blocks', {
         method: 'POST',
@@ -250,6 +253,19 @@ export function TimeBlockingPanel({ date }: Props) {
   const deleteBlock = async (id: string) => {
     setBlocks(p => p.filter(b => b.id !== id));
     try { await fetch(`/api/time-blocks/${id}`, { method: 'DELETE' }); } catch { /* silent */ }
+  };
+
+  const toggleDone = async (e: RMouseEvent, id: string, current: boolean) => {
+    e.stopPropagation();
+    const next = !current;
+    setBlocks(prev => prev.map(b => b.id === id ? { ...b, done: next } : b));
+    try {
+      await fetch(`/api/time-blocks/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ done: next }),
+      });
+    } catch { /* silent */ }
   };
 
   const updateSuperBlock = async (block: TimeBlock, newTasks: string[]) => {
@@ -364,6 +380,9 @@ export function TimeBlockingPanel({ date }: Props) {
             const topPx    = (block.startMinute - START_HOUR * 60) * PX_PER_MIN;
             const heightPx = Math.max((block.endMinute - block.startMinute) * PX_PER_MIN, 28);
             const isShort  = heightPx < 48;
+            const curMin   = now ? now.getHours() * 60 + now.getMinutes() : 0;
+            const isPast   = mounted && now ? block.endMinute <= curMin : false;
+            const blockOpacity = block.done ? 0.35 : isPast ? 0.45 : 1;
 
             const handleBlockClick = (e: RMouseEvent) => {
               e.stopPropagation();
@@ -394,6 +413,8 @@ export function TimeBlockingPanel({ date }: Props) {
                     backdropFilter: 'blur(4px)',
                     zIndex: 20,
                     boxShadow: '0 2px 16px rgba(168,85,247,0.15), inset 0 0 40px rgba(168,85,247,0.04)',
+                    opacity: blockOpacity,
+                    transition: 'opacity 0.3s ease',
                   }}
                 >
                   {/* Diagonal stripe texture */}
@@ -411,9 +432,14 @@ export function TimeBlockingPanel({ date }: Props) {
                         <span className="font-semibold truncate text-white" style={{ fontSize: 11 }}>
                           {block.tasks.length} tasks
                         </span>
-                        <span style={{ fontSize: 10, color: '#c084fc', opacity: .9, whiteSpace: 'nowrap', marginLeft: 'auto' }}>
-                          {minsToLabel(block.startMinute)}
-                        </span>
+                        {now && <Countdown startMin={block.startMinute} endMin={block.endMinute} now={now} />}
+                        <button
+                          onPointerDown={e => e.stopPropagation()}
+                          onClick={e => toggleDone(e, block.id, block.done)}
+                          style={{ marginLeft: 'auto', flexShrink: 0, width: 16, height: 16, borderRadius: '50%', border: `1.5px solid ${block.done ? '#a855f7' : 'rgba(168,85,247,0.45)'}`, background: block.done ? '#a855f7' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
+                        >
+                          {block.done && <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                        </button>
                       </div>
                     ) : (
                       <>
@@ -428,7 +454,6 @@ export function TimeBlockingPanel({ date }: Props) {
                             Super Block
                           </span>
                           <div style={{
-                            marginLeft: 'auto',
                             background: 'rgba(168,85,247,0.28)',
                             border: '1px solid rgba(168,85,247,0.45)',
                             borderRadius: 5,
@@ -439,13 +464,20 @@ export function TimeBlockingPanel({ date }: Props) {
                           }}>
                             {block.tasks.length}
                           </div>
+                          <button
+                            onPointerDown={e => e.stopPropagation()}
+                            onClick={e => toggleDone(e, block.id, block.done)}
+                            style={{ marginLeft: 'auto', flexShrink: 0, width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${block.done ? '#a855f7' : 'rgba(168,85,247,0.45)'}`, background: block.done ? '#a855f7' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
+                          >
+                            {block.done && <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2.5 2.5 3.5-4" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                          </button>
                         </div>
                         {/* Task list */}
                         <div className="flex flex-col gap-0.5">
                           {block.tasks.slice(0, 3).map((t, i) => (
                             <div key={i} className="flex items-center gap-1.5">
                               <div style={{ width: 4, height: 4, borderRadius: 2, background: '#a855f7', flexShrink: 0 }} />
-                              <span className="truncate" style={{ fontSize: 10, color: 'rgba(255,255,255,0.78)' }}>{t}</span>
+                              <span className="truncate" style={{ fontSize: 10, color: 'rgba(255,255,255,0.78)', textDecoration: block.done ? 'line-through' : 'none' }}>{t}</span>
                             </div>
                           ))}
                           {block.tasks.length > 3 && (
@@ -454,9 +486,12 @@ export function TimeBlockingPanel({ date }: Props) {
                             </span>
                           )}
                         </div>
-                        <p style={{ fontSize: 10, color: '#c084fc', opacity: .85, marginTop: 4 }}>
-                          {minsToLabel(block.startMinute)} – {minsToLabel(block.endMinute)}
-                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                          <p style={{ fontSize: 10, color: '#c084fc', opacity: .85 }}>
+                            {minsToLabel(block.startMinute)} – {minsToLabel(block.endMinute)}
+                          </p>
+                          {now && !block.done && <Countdown startMin={block.startMinute} endMin={block.endMinute} now={now} />}
+                        </div>
                       </>
                     )}
                   </div>
@@ -483,6 +518,8 @@ export function TimeBlockingPanel({ date }: Props) {
                   cursor: 'grab',
                   backdropFilter: 'blur(4px)',
                   zIndex: 20,
+                  opacity: blockOpacity,
+                  transition: 'opacity 0.3s ease',
                 }}
               >
                 <div className="absolute inset-0 rounded-xl pointer-events-none"
@@ -490,18 +527,34 @@ export function TimeBlockingPanel({ date }: Props) {
                 <div className="relative h-full flex flex-col justify-center px-3 py-1.5">
                   {isShort ? (
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold truncate" style={{ fontSize: 11, color: 'var(--text-main)' }}>{block.task}</span>
-                      <span style={{ fontSize: 10, color: block.color, opacity: .9, whiteSpace: 'nowrap' }}>
-                        {minsToLabel(block.startMinute)}
-                      </span>
+                      <span className="font-semibold truncate" style={{ fontSize: 11, color: 'var(--text-main)', textDecoration: block.done ? 'line-through' : 'none' }}>{block.task}</span>
+                      {now && !block.done && <Countdown startMin={block.startMinute} endMin={block.endMinute} now={now} />}
+                      <button
+                        onPointerDown={e => e.stopPropagation()}
+                        onClick={e => toggleDone(e, block.id, block.done)}
+                        style={{ marginLeft: 'auto', flexShrink: 0, width: 16, height: 16, borderRadius: '50%', border: `1.5px solid ${block.done ? block.color : block.color + '66'}`, background: block.done ? block.color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
+                      >
+                        {block.done && <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                      </button>
                     </div>
                   ) : (
                     <>
-                      <p className="font-semibold truncate leading-tight" style={{ fontSize: 12, color: 'var(--text-main)' }}>{block.task}</p>
-                      <p style={{ fontSize: 10, color: block.color, opacity: .85, marginTop: 2 }}>
-                        {minsToLabel(block.startMinute)} – {minsToLabel(block.endMinute)}
-                      </p>
-                      {now && <Countdown endMin={block.endMinute} now={now} />}
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold truncate leading-tight" style={{ fontSize: 12, color: 'var(--text-main)', textDecoration: block.done ? 'line-through' : 'none' }}>{block.task}</p>
+                        <button
+                          onPointerDown={e => e.stopPropagation()}
+                          onClick={e => toggleDone(e, block.id, block.done)}
+                          style={{ marginLeft: 'auto', flexShrink: 0, width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${block.done ? block.color : block.color + '66'}`, background: block.done ? block.color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
+                        >
+                          {block.done && <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2.5 2.5 3.5-4" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                        <p style={{ fontSize: 10, color: block.color, opacity: .85 }}>
+                          {minsToLabel(block.startMinute)} – {minsToLabel(block.endMinute)}
+                        </p>
+                        {now && !block.done && <Countdown startMin={block.startMinute} endMin={block.endMinute} now={now} />}
+                      </div>
                     </>
                   )}
                 </div>
